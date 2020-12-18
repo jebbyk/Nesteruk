@@ -723,11 +723,13 @@
 		ldi xl, low(analogValuesTable)
 		ld temp2, x
 
-		ldi xh, high(analogValuesTable) ; get engine temperature from ram
+		
+
+		ldi xh, high(analogValuesTable) ; get outside temperature from ram
 		ldi xl, low(analogValuesTable)
-		ldi temp4, engineThermalSensorNum
+		ldi temp4, outsideThermalSensorNum
 		add xl, temp4
-		ld temp3, x
+		ld temp4, x
 
 		cpi temp2, 128 + 70 ; + 70C
 			brsh condTemperatureWarning
@@ -741,49 +743,97 @@
 		updateHeater:
 		cpi temp2, 128 ; if temperature is minus then enable heater emmediately 
 			brlo enableHeater
-		; else compare needed and actual temperature
-			
-		subi temp2, 128
-		subi temp3, 128
+			subi temp2, 128
 		
 		cp temp2, temp
 			brlo enableHeater
-		
-			;else disable heater
+			jmp disableHeater
+
+		disableHeater: ; ye ye ye useless, but just for code readability
 			cbi porte, heater_pin_number
 			sbi porte, cooler_pin_number
-
-			cp temp2, temp3 ; compare current temperature with engine temperature
-				brsh openCoolEngineCoolerFlap
-				jmp closeHotEngineCoolerFlap
-
-			openCoolEngineCoolerFlap:
-				sbi portd, engine_flap_pin_num
-				jmp endUpdateConditioner
-
-			closeHotEngineCoolerFlap:
-				cbi portd, engine_flap_pin_num
 			jmp endUpdateConditioner
 
 		enableHeater:
-			cp temp2, temp3 ; compare current temperature with engine temperature
-				brlo openHotEngineCoolerFlap
-				jmp closeCoolEngineCoolerFlap
-
-			openHotEngineCoolerFlap:
-				sbi portd, engine_flap_pin_num
-				jmp enableConditionerHeater
-
-			closeCoolEngineCoolerFlap:
-				cbi portd, engine_flap_pin_num
-
-			enableConditionerHeater:
 			sbi porte, heater_pin_number
 			cbi porte, cooler_pin_number
 
 		; TODO add hummidity sensor and regulate it
 
 		endUpdateConditioner: 
+		call resolveEngineFlap
+		call resolveOutsideFlap
+	ret
+
+	resolveEngineFlap:
+		ldi xh, high(analogValuesTable) ; get current temperature from ram
+		ldi xl, low(analogValuesTable)
+		ld temp, x
+
+		ldi xh, high(analogValuesTable) ; get engine temperature from ram
+		ldi xl, low(analogValuesTable)
+		ldi temp4, engineThermalSensorNum
+		add xl, temp4
+		ld temp2, x	
+
+		cp temp, temp2
+			brlo checkIfNeedWarmup
+			jmp checkIfNeedCooldown
+
+		checkIfNeedCooldown:
+			sbic porte, cooler_pin_number
+				jmp openEngineFlap
+				jmp closeEngineFlap
+
+		checkIfNeedWarmup:
+			sbic porte, heater_pin_number
+				jmp openEngineFlap
+				jmp closeEngineFlap
+
+		openEngineFlap:
+			sbi portd, engine_flap_pin_num
+			jmp endResolveEngineFlap
+
+		closeEngineFlap:
+			cbi portd, engine_flap_pin_num
+
+		endResolveEngineFlap:
+	ret
+
+	resolveOutsideFlap:
+		ldi xh, high(analogValuesTable) ; get current temperature from ram
+		ldi xl, low(analogValuesTable)
+		ld temp, x
+
+		ldi xh, high(analogValuesTable) ; get outside temperature from ram
+		ldi xl, low(analogValuesTable)
+		ldi temp4, outsideThermalSensorNum
+		add xl, temp4
+		ld temp2, x	
+
+		cp temp, temp2
+			brlo checkIfNeedWarmupFromOutside
+			jmp checkIfNeedCooldownFromOutside
+
+		checkIfNeedCooldownFromOutside:
+			sbic porte, cooler_pin_number
+				jmp openOutsideFlap
+				jmp closeOutsideFlap
+
+		checkIfNeedWarmupFromOutside:
+			sbic porte, heater_pin_number
+				jmp openOutsideFlap
+				jmp closeOutsideFlap
+
+		openOutsideFlap:
+			sbi portd, outside_flap_pin_num
+			jmp endResolveOutsideFlap
+
+		closeOutsideFlap:
+			cbi portd, outside_flap_pin_num
+
+		endResolveOutsideFlap:
+
 	ret
 
 	updateConditionerFan:
