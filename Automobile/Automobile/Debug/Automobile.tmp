@@ -1,0 +1,192 @@
+<ASSEMBLER_INFO>
+ <VERSION>2.2.7</VERSION>
+ <DEVICE>"ATmega128"</DEVICE>
+ <WORKING_DIR>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\Debug</WORKING_DIR>
+ <INCLUDE_PATH>
+  <DIR>C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.3.300\avrasm\inc</DIR>
+  <DIR>C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avrassembler\Include</DIR>
+  <DIR>C:\Program Files (x86)\Atmel\AVR Tools\AvrAssembler2\Appnotes</DIR>
+ </INCLUDE_PATH>
+ <SOURCE_FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</SOURCE_FILE>
+ <INCLUDED_FILES>
+  <FILE>C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.3.300\avrasm\inc\m128def.inc</FILE>
+ </INCLUDED_FILES>
+ <OBJECT_FILES>
+  <FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\Debug\Automobile.obj</FILE>
+ </OBJECT_FILES>
+ <HEX_FILES>
+  <FILE>Automobile.hex</FILE>
+ </HEX_FILES>
+ <OUTPUT_FILES>
+  <FILE>Automobile.map</FILE>
+  <FILE>Automobile.lss</FILE>
+ </OUTPUT_FILES>
+ <LABELS>
+  <currentTone><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>145</LINE></currentTone>
+  <curPos7Seg><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>148</LINE></curPos7Seg>
+  <SevenSegScrBuff><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>150</LINE></SevenSegScrBuff>
+  <currentSensorNum><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>153</LINE></currentSensorNum>
+  <targetTemperature><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>155</LINE></targetTemperature>
+  <analogValuesTable><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>157</LINE></analogValuesTable>
+  <updateConditionerTimer><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>159</LINE></updateConditionerTimer>
+  <flapsUpdateTimer><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>161</LINE></flapsUpdateTimer>
+  <currentControlledFlap><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>163</LINE></currentControlledFlap>
+  <conditionerFanTimer0><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>166</LINE></conditionerFanTimer0>
+  <conditionerFanTimer1><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>168</LINE></conditionerFanTimer1>
+  <tachometerTimerH><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>171</LINE></tachometerTimerH>
+  <tachometerTimerL><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>173</LINE></tachometerTimerL>
+  <tachometerCounter><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>176</LINE></tachometerCounter>
+  <engineSpeed><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>179</LINE></engineSpeed>
+  <checkEngineTemperatureTimer><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>181</LINE></checkEngineTemperatureTimer>
+  <conditionerFanState><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>185</LINE></conditionerFanState>
+  <currentDisplayData><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>189</LINE></currentDisplayData>
+  <switchDisplayDataTimerH><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>191</LINE></switchDisplayDataTimerH>
+  <switchDisplayDataTimerL><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>193</LINE></switchDisplayDataTimerL>
+  <reset><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>234</LINE></reset>
+  <extInt0Handler><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1451</LINE></extInt0Handler>
+  <extInt1Handler><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1455</LINE></extInt1Handler>
+  <timer2OvfHandler><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1467</LINE></timer2OvfHandler>
+  <timer1OvfHandler><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1463</LINE></timer1OvfHandler>
+  <timer0OvfHandler><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1459</LINE></timer0OvfHandler>
+  <adcConvertionHandler><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1475</LINE></adcConvertionHandler>
+  <timer3OvfHandler><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1471</LINE></timer3OvfHandler>
+  <charTable7seg><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>220</LINE></charTable7seg>
+  <errorString7><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>230</LINE></errorString7>
+  <backgroundProcess><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>312</LINE></backgroundProcess>
+  <updateSoundType><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>862</LINE></updateSoundType>
+  <updateWaveState><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>966</LINE></updateWaveState>
+  <readInput><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>991</LINE></readInput>
+  <update7segScreen><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1081</LINE></update7segScreen>
+  <readAnalogSensors><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1357</LINE></readAnalogSensors>
+  <saveTargetTemperature><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>654</LINE></saveTargetTemperature>
+  <updateConditioner><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>708</LINE></updateConditioner>
+  <updateConditionerFan><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>789</LINE></updateConditionerFan>
+  <loadTargetTemperature><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>675</LINE></loadTargetTemperature>
+  <updateProgramTimers><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>409</LINE></updateProgramTimers>
+  <updateFlaps><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>814</LINE></updateFlaps>
+  <updateTachometer><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1397</LINE></updateTachometer>
+  <incrementTachometerCounter><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1423</LINE></incrementTachometerCounter>
+  <checkEngineTemperature><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>690</LINE></checkEngineTemperature>
+  <switchDisplayData><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1043</LINE></switchDisplayData>
+  <kek><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>360</LINE></kek>
+  <lol><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>356</LINE></lol>
+  <pewpew><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>364</LINE></pewpew>
+  <cheburek><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>368</LINE></cheburek>
+  <lowerTemperature><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>612</LINE></lowerTemperature>
+  <rizeTemperature><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>590</LINE></rizeTemperature>
+  <handleCancelKey><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>375</LINE></handleCancelKey>
+  <switchConditioner><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>633</LINE></switchConditioner>
+  <cancelWarning><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>380</LINE></cancelWarning>
+  <endHandleCancelKey><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>385</LINE></endHandleCancelKey>
+  <disableWarningSignal><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>393</LINE></disableWarningSignal>
+  <enableCancelSignal><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>405</LINE></enableCancelSignal>
+  <enableWarningSignal><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>389</LINE></enableWarningSignal>
+  <enableClickSignal><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>397</LINE></enableClickSignal>
+  <enableAcceptSignal><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>401</LINE></enableAcceptSignal>
+  <updTachTimer><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>492</LINE></updTachTimer>
+  <setConditionerFlag><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>428</LINE></setConditionerFlag>
+  <saveConditionerTimer><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>433</LINE></saveConditionerTimer>
+  <checkCondFanTimer1><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>446</LINE></checkCondFanTimer1>
+  <endUpdateCondFanTimer><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>469</LINE></endUpdateCondFanTimer>
+  <setUpdateCondFanFlag><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>461</LINE></setUpdateCondFanFlag>
+  <setUpdateFlapsFlag><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>482</LINE></setUpdateFlapsFlag>
+  <saveUpdateFlapsTimer><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>487</LINE></saveUpdateFlapsTimer>
+  <incrementTachTimerH><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>501</LINE></incrementTachTimerH>
+  <saveTachTimerL><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>513</LINE></saveTachTimerL>
+  <resetTachTimer><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>521</LINE></resetTachTimer>
+  <saveTachTimerH><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>517</LINE></saveTachTimerH>
+  <endTachTimerUpdate><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>529</LINE></endTachTimerUpdate>
+  <incSwitchDisplayDataTimerH><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>542</LINE></incSwitchDisplayDataTimerH>
+  <endDisplayDataTimerUpdate><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>563</LINE></endDisplayDataTimerUpdate>
+  <setSwitchDisplayDataFlag><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>554</LINE></setSwitchDisplayDataFlag>
+  <saveSwitchDisplayDataTimerH><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>560</LINE></saveSwitchDisplayDataTimerH>
+  <resetDisplayDataTimerH><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>557</LINE></resetDisplayDataTimerH>
+  <setCheckEngineTemperatureFlag><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>576</LINE></setCheckEngineTemperatureFlag>
+  <saveCheckEngineTemperatureTimer><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>581</LINE></saveCheckEngineTemperatureTimer>
+  <endCheckEngineTemperatureTimerUpdate><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>584</LINE></endCheckEngineTemperatureTimerUpdate>
+  <saveTemperatureToRam><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>606</LINE></saveTemperatureToRam>
+  <cond_en><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>639</LINE></cond_en>
+  <cond_dis><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>643</LINE></cond_dis>
+  <endSwitchConditioner><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>649</LINE></endSwitchConditioner>
+  <endWritingAttempt><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>671</LINE></endWritingAttempt>
+  <endReadAttempt><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>687</LINE></endReadAttempt>
+  <enableEngineTempWarning><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>702</LINE></enableEngineTempWarning>
+  <endEngineTemperatureCheck><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>705</LINE></endEngineTemperatureCheck>
+  <condTemperatureWarning><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>738</LINE></condTemperatureWarning>
+  <updateHeater><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>741</LINE></updateHeater>
+  <enableHeater><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>768</LINE></enableHeater>
+  <openCoolEngineCoolerFlap><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>760</LINE></openCoolEngineCoolerFlap>
+  <closeHotEngineCoolerFlap><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>764</LINE></closeHotEngineCoolerFlap>
+  <endUpdateConditioner><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>786</LINE></endUpdateConditioner>
+  <openHotEngineCoolerFlap><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>773</LINE></openHotEngineCoolerFlap>
+  <closeCoolEngineCoolerFlap><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>777</LINE></closeCoolEngineCoolerFlap>
+  <enableConditionerHeater><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>780</LINE></enableConditionerHeater>
+  <resetCondFanState><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>804</LINE></resetCondFanState>
+  <saveCondFanState><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>806</LINE></saveCondFanState>
+  <jumpToFirstFlap><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>854</LINE></jumpToFirstFlap>
+  <saveNextFlapNum><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>857</LINE></saveNextFlapNum>
+  <updateWarningSignal><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>878</LINE></updateWarningSignal>
+  <updateClickSignal><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>892</LINE></updateClickSignal>
+  <updateAcceptSignal><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>908</LINE></updateAcceptSignal>
+  <updateCancelSignal><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>936</LINE></updateCancelSignal>
+  <warningSound_case_0><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>882</LINE></warningSound_case_0>
+  <warningSound_case_1><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>888</LINE></warningSound_case_1>
+  <clickSound_case_0><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>897</LINE></clickSound_case_0>
+  <clickSound_case_1><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>903</LINE></clickSound_case_1>
+  <acceptSound_case0><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>913</LINE></acceptSound_case0>
+  <acceptSound_case1><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>919</LINE></acceptSound_case1>
+  <acceptSound_case2><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>927</LINE></acceptSound_case2>
+  <acceptSound_case3><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>931</LINE></acceptSound_case3>
+  <cancelSound_case0><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>941</LINE></cancelSound_case0>
+  <cancelSound_case1><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>947</LINE></cancelSound_case1>
+  <cancelSound_case2><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>955</LINE></cancelSound_case2>
+  <cancelSound_case3><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>959</LINE></cancelSound_case3>
+  <speakerWaveUp><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>981</LINE></speakerWaveUp>
+  <speakerWaveDown><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>984</LINE></speakerWaveDown>
+  <checkInput><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1022</LINE></checkInput>
+  <endReadingInput><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1032</LINE></endReadingInput>
+  <clearReturnAddr><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1029</LINE></clearReturnAddr>
+  <checkDisplayErrorMessage><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1051</LINE></checkDisplayErrorMessage>
+  <normalDataSwitch><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1060</LINE></normalDataSwitch>
+  <switchThroughError><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1056</LINE></switchThroughError>
+  <endSwitchingDisplayData><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1077</LINE></endSwitchingDisplayData>
+  <goToFirstData><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1073</LINE></goToFirstData>
+  <jumpToFirst7seg><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1099</LINE></jumpToFirst7seg>
+  <printGlyph><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1128</LINE></printGlyph>
+  <clear7SegScrBuffer><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1161</LINE></clear7SegScrBuffer>
+  <selectErrorMessage><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1122</LINE></selectErrorMessage>
+  <selectTemperaturesData><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1112</LINE></selectTemperaturesData>
+  <selectTachometerData><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1118</LINE></selectTachometerData>
+  <printEngineTemperature><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1237</LINE></printEngineTemperature>
+  <printCurrentTemperature><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1211</LINE></printCurrentTemperature>
+  <printTargetTemperature><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1194</LINE></printTargetTemperature>
+  <endJumpToFirstSegment><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1125</LINE></endJumpToFirstSegment>
+  <printTachometerValue><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1178</LINE></printTachometerValue>
+  <printErrorMessage><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1267</LINE></printErrorMessage>
+  <printDot><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1150</LINE></printDot>
+  <moveGlyphToscreen><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1153</LINE></moveGlyphToscreen>
+  <convertBinToDec><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1279</LINE></convertBinToDec>
+  <convertTemperature><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1224</LINE></convertTemperature>
+  <negateTemperature><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1219</LINE></negateTemperature>
+  <printEngineTempNegative><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1259</LINE></printEngineTempNegative>
+  <endEngineTempPrinting><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1264</LINE></endEngineTempPrinting>
+  <btdMax><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1340</LINE></btdMax>
+  <increaseTens0><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1286</LINE></increaseTens0>
+  <setLowPage><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1348</LINE></setLowPage>
+  <increaseTens1><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1292</LINE></increaseTens1>
+  <increaseTens2><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1298</LINE></increaseTens2>
+  <increaseTens3><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1304</LINE></increaseTens3>
+  <increaseTens4><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1310</LINE></increaseTens4>
+  <increaseTens5><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1316</LINE></increaseTens5>
+  <increaseTens6><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1322</LINE></increaseTens6>
+  <increaseTens7><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1328</LINE></increaseTens7>
+  <increaseTens8><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1334</LINE></increaseTens8>
+  <endBTDConv><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1353</LINE></endBTDConv>
+  <jumpToFirstSensor><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1380</LINE></jumpToFirstSensor>
+  <saveNextSensorNumber><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1383</LINE></saveNextSensorNumber>
+  <tachometerMax><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1415</LINE></tachometerMax>
+  <saveEngineSpeed><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1417</LINE></saveEngineSpeed>
+  <endIncTachCounter><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1442</LINE></endIncTachCounter>
+  <incTachCounter><FILE>C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm</FILE><LINE>1438</LINE></incTachCounter>
+ </LABELS>
+</ASSEMBLER_INFO>
