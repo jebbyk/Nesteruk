@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8' standalone='yes'?>
 <WORKSPACE>
  <FRAME activewindow="0">
-  <PLACEMENT>2c0000000200000003000000ffffffffffffffffffffffffffffffff01fbffff2e0000008fffffff1c030000</PLACEMENT>
+  <PLACEMENT>2c00000002000000030000000083ffff0083ffffffffffffffffffff01fbffff2e0000008fffffff1c030000</PLACEMENT>
   <WINDOW type="default" module="ISIS"/>
  </FRAME>
  <MODULE name="VSMDEBUG">
@@ -35,7 +35,7 @@
    <POPUP w="290" x="-556" flags="00000000" y="126" h="189" pid="0" iid="8">
     <PROPERTIES/>
    </POPUP>
-   <POPUP w="30" x="1019" flags="00000009" y="536" h="16" pid="3" iid="1">
+   <POPUP w="226" x="1019" flags="00000009" y="536" h="215" pid="3" iid="1">
     <PROPERTIES/>
    </POPUP>
    <POPUP w="8" x="118" flags="0000000a" y="209" h="1" pid="10" iid="1">
@@ -78,7 +78,7 @@
      <ITEM name="TopLineAddress">00000000</ITEM>
     </PROPERTIES>
    </POPUP>
-   <POPUP w="16" x="863" flags="0000000b" y="1" h="32" pid="4" iid="1">
+   <POPUP w="16" x="863" flags="0000800b" y="1" h="32" pid="4" iid="1">
     <PROPERTIES>
      <ITEM name="DataType">2</ITEM>
      <ITEM name="DispChars">Yes</ITEM>
@@ -100,9 +100,9 @@
    </POPUP>
    <POPUP w="877" x="0" flags="0000002b" y="1" h="899" pid="1" iid="1">
     <PROPERTIES>
-     <ITEM name="Breakpoint 0">"",029A,0000,2D6B,5BC9,-1
+     <ITEM name="Breakpoint 0">"",0194,0000,EA71,5BC9,-1
 </ITEM>
-     <ITEM name="Breakpoint 1">"",02B4,0000,0651,5BC9,-1
+     <ITEM name="Breakpoint 1">"",040A,0000,A4B2,5BC9,-1
 </ITEM>
      <ITEM name="Breakpoint 10">"",0598,0000,A9BB,5BC9,-1
 </ITEM>
@@ -118,19 +118,19 @@
 </ITEM>
      <ITEM name="Breakpoint 16">"",05B0,0000,5BFE,5BC9,-1
 </ITEM>
-     <ITEM name="Breakpoint 2">"",039E,0000,32BE,5BC9,-1
+     <ITEM name="Breakpoint 2">"",040E,0000,28E9,5BC9,-1
 </ITEM>
-     <ITEM name="Breakpoint 3">"",057E,0000,A7E9,5BC9,-1
+     <ITEM name="Breakpoint 3">"",0426,0000,A4B2,5BC9,-1
 </ITEM>
-     <ITEM name="Breakpoint 4">"",0598,0000,1B85,5BC9,-1
+     <ITEM name="Breakpoint 4">"",045A,0000,A4B2,5BC9,1
 </ITEM>
-     <ITEM name="Breakpoint 5">"",059C,0000,5DB1,5BC9,-1
+     <ITEM name="Breakpoint 5">"",055E,0000,8A00,5BC9,-1
 </ITEM>
-     <ITEM name="Breakpoint 6">"",059E,0000,5BFE,5BC9,-1
+     <ITEM name="Breakpoint 6">"",06BC,0000,EDDD,5BC9,-1
 </ITEM>
-     <ITEM name="Breakpoint 7">"",05AC,0000,0651,5BC9,-1
+     <ITEM name="Breakpoint 7">"",08C8,0000,8B13,5BC9,-1
 </ITEM>
-     <ITEM name="Breakpoint 8">"",05C6,0000,6E1A,5BC9,-1
+     <ITEM name="Breakpoint 8">"",0964,0000,98FB,5BC9,-1
 </ITEM>
      <ITEM name="Breakpoint 9">"",0566,0000,7BA3,5BC9,-1
 </ITEM>
@@ -140,7 +140,7 @@
      <ITEM name="DISPOPCODES">No</ITEM>
      <ITEM name="FIXUPBPTS">Yes</ITEM>
      <ITEM name="WordsOnly">No</ITEM>
-     <ITEM name="nBreakpoints">9</ITEM>
+     <ITEM name="nBreakpoints">1</ITEM>
     </PROPERTIES>
    </POPUP>
    <POPUP w="300" x="258" flags="0000000a" y="349" h="300" pid="2" iid="1">

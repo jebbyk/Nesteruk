@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.7  C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm Sun Dec 20 13:36:28 2020
+AVRASM ver. 2.2.7  C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm Sun Dec 20 22:52:02 2020
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.3.300\avrasm\inc\m128def.inc'
 C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm(1): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.3.300\avrasm\inc\m128def.inc'
@@ -1276,7 +1276,8 @@ C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm(1): Incl
                                  .def tempInter = r20
                                  .def eventsFlags0 = r21
                                  .def eventsFlags1 = r22
-                                 .def statesFlags0 = r23
+                                 .def eventsFlags2 = r23
+                                 .def statesFlags0 = r24
                                  
                                  .equ speaker_pin_number = 5
                                  .equ speaker_pin_position = 0b00000100 ; speaker will be connected on 5th pin of portD
@@ -1295,6 +1296,15 @@ C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm(1): Incl
                                  .equ cooler_pin_number = 1
                                  .equ cooler_pin_position = 0b000000010
                                  
+                                 .equ frontAirbagsTriggerPinNumber = 4
+                                 .equ frontAirbagsTriggerPinPosition = 0b00010000
+                                 .equ sideAirbagsTriggerPinNumber = 3
+                                 .equ sideAirbagsTriggerPinPosition =  0b00001000
+                                 .equ maxAllowedSideAcceleration = 40
+                                 .equ maxAllowedForwardAcceleration = 100
+                                 .equ maxAllowedBackwardAcceleration = 70
+                                 .equ accelerationCheckingFreq = 128 + 64 + 32 + 16 + 8 + 4 + 2
+                                 
                                  .equ insideThermalSensorNum = 0
                                  .equ outsideThermalSensorNum = 1
                                  .equ engineThermalSensorNum = 2
@@ -1307,10 +1317,10 @@ C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm(1): Incl
                                  .equ seat1FlapControl = 9
                                  .equ seat2FlapControl = 10
                                  .equ seat3FlapControl = 11
-                                 .equ insideHumiditySensorNum = 12
-                                 .equ outsideHumiditySensorNum = 13
-                                 .equ hyroscopeZsensor = 14
-                                 .equ hyroscopeXsensor = 15
+                                 .equ accelerationFrontSensorZ = 12
+                                 .equ accelerationFrontSensorX = 13
+                                 .equ accelerationRearSensorX = 14
+                                 .equ lolkekcheburek = 15
                                  
                                  .equ tccr0_setup_byte = 0b00000101 ; select speed for timer0
                                  .equ assr_setup_byte =  0b00001000 ; select async oscilator (slower speed and independent from main clock)
@@ -1346,6 +1356,8 @@ C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm(1): Incl
                                   	.equ tone1 = 0 + 128 + 64 + 32 + 16 + 8 + 4 + 2
                                  
                                  .equ displayDataSwitchingFreq = 128 + 64 + 32 ; bigger number - faster switching
+                                 
+                                 .equ checkOutsideTemperatureFreq = 128 + 64 + 32 + 16 
                                  
                                  .equ condFanSpeed = 249; higher number - higher speed
                                  	
@@ -1396,14 +1408,20 @@ C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm(1): Incl
                                  	.equ ef_update_flaps_n =			5
                                  	.equ ef_increment_tachometer =		0b00010000
                                  	.equ ef_increment_tachometer_n =	4
-                                 	.equ ef_update_tachometer =			0b000001000
+                                 	.equ ef_update_tachometer =			0b00001000
                                  	.equ ef_update_tachometer_n =		3
-                                 	.equ ef_check_engine_temperature =	0b000000100
+                                 	.equ ef_check_engine_temperature =	0b00000100
                                  	.equ ef_check_engine_temperature_n = 2
-                                 	.equ ef_switch_display_data =		0b000000010
+                                 	.equ ef_switch_display_data =		0b00000010
                                  	.equ ef_switch_display_data_n =		1
-                                 	.equ ef_handle_current_key =		0b000000001
+                                 	.equ ef_handle_current_key =		0b00000001
                                  	.equ ef_handle_current_key_n =		0
+                                 
+                                 	; events falgs 2
+                                 	.equ ef_check_outside_temperature =		0b10000000
+                                 	.equ ef_check_outside_temperature_n =   7
+                                 	.equ ef_check_acceleration =			0b01000000
+                                 	.equ ef_check_acceleration_n =			6
                                  
                                  
                                  //addreses in eeprom where usefull data will be saved
@@ -1441,25 +1459,32 @@ C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm(1): Incl
 000122                           		.byte 1
                                  	conditionerFanState:
 000123                           		.byte 1 ; reserve 1 byte to know fan "rotation" (not quite but who cares)
+                                 	checkOutsideTemperatureTimerH:
+000124                           		.byte 1
+                                 	checkOutsideTemperatureTimerL:
+000125                           		.byte 1
                                  
                                  	tachometerTimerH:
-000124                           		.byte 1
-                                 	tachometerTimerL:
-000125                           		.byte 1
-                                 	tachometerCounter:
 000126                           		.byte 1
-                                 	engineSpeed:
+                                 	tachometerTimerL:
 000127                           		.byte 1
-                                 	checkEngineTemperatureTimer:
+                                 	tachometerCounter:
 000128                           		.byte 1
+                                 	engineSpeed:
+000129                           		.byte 1
+                                 	checkEngineTemperatureTimer:
+00012a                           		.byte 1
                                  
                                  	currentTone:
-000129                           		.byte 1 ; there will be stored current note of sound
+00012b                           		.byte 1 ; there will be stored current note of sound
                                  
                                  	currentKey:
-00012a                           		.byte 1 ; there will be storred a number of the last pressed key
+00012c                           		.byte 1 ; there will be storred a number of the last pressed key
                                  	handleCurrentKeyTimer:
-00012b                           		.byte 1
+00012d                           		.byte 1
+                                 
+                                 	checkAccelerationTimer:
+00012e                           		.byte 1 
                                  
                                  .cseg
                                  	.org 0
@@ -1467,19 +1492,19 @@ C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm(1): Incl
                                  
                                  	
                                  		.org $0002
-000002 940c 0470                 			jmp extInt0Handler
+000002 940c 04f4                 			jmp extInt0Handler
                                  		.org $0004
-000004 940c 0472                 			jmp extInt1Handler
+000004 940c 04f8                 			jmp extInt1Handler
                                  		.org $0014
-000014 940c 0478                 			jmp timer2OvfHandler
+000014 940c 0504                 			jmp timer2OvfHandler
                                  		.org $001C
-00001c 940c 0476                 			jmp timer1OvfHandler
+00001c 940c 0500                 			jmp timer1OvfHandler
                                  		.org $0020
-000020 940c 0474                 			jmp timer0OvfHandler
+000020 940c 04fc                 			jmp timer0OvfHandler
                                  		.org $002a
-00002a 940c 047c                 			jmp adcConvertionHandler
+00002a 940c 050c                 			jmp adcConvertionHandler
                                  		.org $003a 
-00003a 940c 047a                 			jmp timer3OvfHandler
+00003a 940c 0508                 			jmp timer3OvfHandler
                                  
                                  
                                  	.org $0050 ; start program almost right after all intrruptions vectors
@@ -1584,1252 +1609,1436 @@ C:\Users\Jebbyk\Desktop\My dear Nesteruk\Automobile\Automobile\main.asm(1): Incl
                                  
                                  	backgroundProcess:
 000092 fd56                      		sbrc eventsFlags0, ef_update_sound_type_n
-000093 940e 0285                 			call updateSoundType
+000093 940e 0309                 			call updateSoundType
 000095 fd57                      		sbrc eventsFlags0, ef_update_sound_wave_state_n
-000096 940e 02de                 			call updateWaveState
+000096 940e 0362                 			call updateWaveState
 000098 fd55                      		sbrc eventsFlags0, ef_handle_input_n
-000099 940e 02ee                 			call readInput
+000099 940e 0372                 			call readInput
 00009b fd54                      		sbrc eventsFlags0, ef_update_7seg_screen_n
-00009c 940e 0334                 			call update7segScreen
+00009c 940e 03b8                 			call update7segScreen
 00009e fd53                      		sbrc eventsFlags0, ef_read_analog_sensors_n
-00009f 940e 042e                 			call readAnalogSensors
+00009f 940e 04b2                 			call readAnalogSensors
 0000a1 fd52                      		sbrc eventsFlags0, ef_save_target_temperature_n
-0000a2 940e 01c5                 			call saveTargetTemperature
+0000a2 940e 0238                 			call saveTargetTemperature
 0000a4 fd51                      		sbrc eventsFlags0, ef_update_heater_n
-0000a5 940e 01eb                 			call updateConditioner
+0000a5 940e 026e                 			call updateConditioner
 0000a7 fd50                      		sbrc eventsFlags0, ef_update_conditioner_fan_n
-0000a8 940e 024c                 			call updateConditionerFan
+0000a8 940e 02d0                 			call updateConditionerFan
                                  
 0000aa fd67                      		sbrc eventsFlags1, ef_load_target_temp_n
-0000ab 940e 01d3                 			call loadTargetTemperature
+0000ab 940e 0246                 			call loadTargetTemperature
 0000ad fd66                      		sbrc eventsFlags1, ef_update_program_timers_n
-0000ae 940e 00f8                 			call updateProgramTimers 
+0000ae 940e 0146                 			call updateProgramTimers 
 0000b0 fd65                      		sbrc eventsFlags1, ef_update_flaps_n
-0000b1 940e 0261                 			call updateFlaps
+0000b1 940e 02e5                 			call updateFlaps
 0000b3 fd63                      		sbrc eventsFlags1, ef_update_tachometer_n
-0000b4 940e 044b                 			call updateTachometer
+0000b4 940e 04cf                 			call updateTachometer
 0000b6 fd64                      		sbrc eventsFlags1, ef_increment_tachometer_n
-0000b7 940e 045d                 			call incrementTachometerCounter
+0000b7 940e 04e1                 			call incrementTachometerCounter
 0000b9 fd62                      		sbrc eventsFlags1, ef_check_engine_temperature_n
-0000ba 940e 01df                 			call checkEngineTemperature
+0000ba 940e 0252                 			call checkEngineTemperature
 0000bc fd61                      		sbrc eventsFlags1, ef_switch_display_data_n
-0000bd 940e 0316                 			call switchDisplayData
+0000bd 940e 039a                 			call switchDisplayData
 0000bf fd60                      		sbrc eventsFlags1, ef_handle_current_key_n
-0000c0 940e 00c4                 			call handleCurrentKey
-0000c2 940c 0092                  	jmp backgroundProcess
+0000c0 940e 0104                 			call handleCurrentKey
+                                 
+0000c2 fd77                      		sbrc eventsFlags2, ef_check_outside_temperature_n
+0000c3 940e 025f                 			call checkOutsideTemperature
+0000c5 fd76                      		sbrc eventsFlags2, ef_check_acceleration_n
+0000c6 940e 00ca                 			call checkAcceleration
+                                 
+0000c8 940c 0092                  	jmp backgroundProcess
+                                 
+                                 	checkAcceleration:
+0000ca 7b7f                      		cbr eventsFlags2, ef_check_acceleration
+                                 
+0000cb e0b1                      		ldi xh, high(analogValuesTable)
+0000cc e0a0                      		ldi xl, low(analogValuesTable)
+0000cd e00c                      		ldi temp, accelerationFrontSensorZ
+0000ce 0fa0                      		add xl, temp
+0000cf 911c                      		ld temp2, x
+                                 
+0000d0 331a                      		cpi temp2, 128 - maxAllowedBackwardAcceleration
+0000d1 f0b0                      			brlo frontCollision
+                                 		
+                                 		checkRearCollision:
+0000d2 3e14                      			cpi temp2, 128 + maxAllowedForwardAcceleration
+0000d3 f4c0                      				brsh rearCollision
+                                 
+                                 		
+                                 
+                                 		checkFrontLeftCollision:
+0000d4 e0b1                      		ldi xh, high(analogValuesTable)
+0000d5 e0a0                      		ldi xl, low(analogValuesTable)
+0000d6 e00d                      		ldi temp, accelerationFrontSensorX
+0000d7 0fa0                      		add xl, temp
+0000d8 912c                      		ld temp3, x
+                                 
+                                 		
+0000d9 3a28                      		cpi temp3, 128 + maxAllowedSideAcceleration
+0000da f4b0                      			brsh frontLeftCollision
+                                 		
+                                 		checkFrontRightCollision:
+0000db 3528                      			cpi temp3, 128 - maxAllowedSideAcceleration
+0000dc f0c8                      				brlo frontRightCollision
+                                 
+                                 		checkBackLeftCollision:
+0000dd e0b1                      		ldi xh, high(analogValuesTable)
+0000de e0a0                      		ldi xl, low(analogValuesTable)
+0000df e00e                      		ldi temp, accelerationRearSensorX
+0000e0 0fa0                      		add xl, temp
+0000e1 913c                      		ld temp4, x
+                                 
+0000e2 3a38                      		cpi temp4, 128 + maxAllowedSideAcceleration
+0000e3 f4b8                      			brsh backLeftCollision
+                                 
+                                 		checkBackRightCollision:
+0000e4 3538                      			cpi temp4, 128 - maxAllowedSideAcceleration
+0000e5 f0d0                      				brlo backRightCollision
+0000e6 940c 0103                 				jmp endCheckCollision
+                                 
+                                 		frontCollision:
+0000e8 940e 0134                 			call enableWarningSignal
+0000ea 940c 00d2                 			jmp checkRearCollision
+                                 
+                                 		rearCollision:
+0000ec 9a94                      			sbi portd, frontAirbagsTriggerPinNumber
+0000ed 940e 0134                 			call enableWarningSignal
+0000ef 940c 00d4                 			jmp checkFrontLeftCollision
+                                 
+                                 		frontLeftCollision:
+0000f1 9a93                      			sbi portd, sideAirbagsTriggerPinNumber
+0000f2 940e 0134                 			call enableWarningSignal
+0000f4 940c 00db                 			jmp checkFrontRightCollision
+                                 
+                                 		frontRightCollision:
+0000f6 9a93                      			sbi portd, sideAirbagsTriggerPinNumber
+0000f7 940e 0134                 			call enableWarningSignal
+0000f9 940c 00dd                 			jmp checkBackLeftCollision
+                                 
+                                 		backLeftCollision:
+0000fb 9a93                      			sbi portd, sideAirbagsTriggerPinNumber
+0000fc 940e 0134                 			call enableWarningSignal
+0000fe 940c 00e4                 			jmp checkBackRightCollision
+                                 
+                                 		backRightCollision:
+000100 9a93                      			sbi portd, sideAirbagsTriggerPinNumber
+000101 940e 0134                 			call enableWarningSignal
+                                 
+                                 		endCheckCollision:
+000103 9508                      	ret
                                  
                                  	handleCurrentKey:
-0000c4 7f6e                      		cbr eventsFlags1, ef_handle_current_key
-0000c5 e0b1                      		ldi xh, high(currentKey)
-0000c6 e2aa                      		ldi xl, low(currentKey)
-0000c7 910c                      		ld temp, x
-0000c8 310c                      		cpi temp, 28
-0000c9 f041                      			breq callRizeTemperature
-0000ca 3104                      		cpi temp, 20
-0000cb f051                      			breq callLowerTemperature
-0000cc 300c                      		cpi temp, 12
-0000cd f061                      			breq callHandleCancelKey
-0000ce 3109                      		cpi temp, 25
-0000cf f071                      			breq callSwitchConditioner
-0000d0 940c 00e0                 			jmp handleCurrentKeyEnd
+000104 7f6e                      		cbr eventsFlags1, ef_handle_current_key
+000105 e0b1                      		ldi xh, high(currentKey)
+000106 e2ac                      		ldi xl, low(currentKey)
+000107 910c                      		ld temp, x
+000108 310c                      		cpi temp, 28
+000109 f041                      			breq callRizeTemperature
+00010a 3104                      		cpi temp, 20
+00010b f051                      			breq callLowerTemperature
+00010c 300c                      		cpi temp, 12
+00010d f061                      			breq callHandleCancelKey
+00010e 3109                      		cpi temp, 25
+00010f f071                      			breq callSwitchConditioner
+000110 940c 0120                 			jmp handleCurrentKeyEnd
                                  
                                  		callRizeTemperature:
-0000d2 940e 018c                 			call rizeTemperature
-0000d4 940c 00e0                 			jmp handleCurrentKeyEnd
+000112 940e 01ff                 			call rizeTemperature
+000114 940c 0120                 			jmp handleCurrentKeyEnd
                                  
                                  		callLowerTemperature:
-0000d6 940e 019e                 			call lowerTemperature
-0000d8 940c 00e0                 			jmp handleCurrentKeyEnd
+000116 940e 0211                 			call lowerTemperature
+000118 940c 0120                 			jmp handleCurrentKeyEnd
                                  
                                  		callHandleCancelKey:
-0000da 940e 00e1                 			call handleCancelKey
-0000dc 940c 00e0                 			jmp handleCurrentKeyEnd
+00011a 940e 0121                 			call handleCancelKey
+00011c 940c 0120                 			jmp handleCurrentKeyEnd
                                  
                                  		callSwitchConditioner:
-0000de 940e 01b0                 			call switchConditioner
+00011e 940e 0223                 			call switchConditioner
                                  
                                  		handleCurrentKeyEnd:
-0000e0 9508                      	ret
+000120 9508                      	ret
                                  
                                  
                                  	handleCancelKey:
-0000e1 fd76                      		sbrc statesFlags0, sf_warning_signal_enabled_n
-0000e2 940c 00e6                 			jmp cancelWarning
-0000e4 940c 00ed                 			jmp endHandleCancelKey
+000121 fd86                      		sbrc statesFlags0, sf_warning_signal_enabled_n
+000122 940c 0126                 			jmp cancelWarning
+000124 940c 012d                 			jmp endHandleCancelKey
                                  
                                  		cancelWarning:
-0000e6 e000                      			ldi temp, 0
-0000e7 9300 012a                 			sts currentKey, temp ; current key is handled. so clear it
-0000e9 940e 00f0                 			call disableWarningSignal
-0000eb 940e 00f6                 			call enableCancelSignal
+000126 e000                      			ldi temp, 0
+000127 9300 012c                 			sts currentKey, temp ; current key is handled. so clear it
+000129 940e 0138                 			call disableWarningSignal
+00012b 940e 0142                 			call enableCancelSignal
                                  
                                  		endHandleCancelKey:
                                  
-0000ed 9508                      	ret
+00012d 9508                      	ret
+                                 
+                                 	resetSoundState:
+00012e 7d8f                      		cbr statesFlags0, sf_click_signal_enabled
+00012f 7e8f                      		cbr statesFlags0, sf_accept_signal_enabled
+000130 7f87                      		cbr statesFlags0, sf_cancel_signal_enabled
+000131 7b8f                      		cbr statesFlags0, sf_warning_signal_enabled
+000132 778f                      		cbr statesFlags0, sf_sound_enabled
+000133 9508                      	ret
                                  
                                  	enableWarningSignal:
-0000ee 6470                      		sbr statesFlags0, sf_warning_signal_enabled
-0000ef 9508                      	ret
+000134 940e 012e                 		call resetSoundState
+000136 6480                      		sbr statesFlags0, sf_warning_signal_enabled
+000137 9508                      	ret
                                  
                                  	disableWarningSignal:
-0000f0 7b7f                      		cbr statesFlags0, sf_warning_signal_enabled
-0000f1 9508                      	ret
+000138 7b8f                      		cbr statesFlags0, sf_warning_signal_enabled
+000139 9508                      	ret
                                  
                                  	enableClickSignal:
-0000f2 6270                      		sbr statesFlags0, sf_click_signal_enabled
-0000f3 9508                      	ret
+00013a 940e 012e                 		call resetSoundState
+00013c 6280                      		sbr statesFlags0, sf_click_signal_enabled
+00013d 9508                      	ret
                                  
                                  	enableAcceptSignal:
-0000f4 6170                      		sbr statesFlags0, sf_accept_signal_enabled
-0000f5 9508                      	ret
+00013e 940e 012e                 		call resetSoundState
+000140 6180                      		sbr statesFlags0, sf_accept_signal_enabled
+000141 9508                      	ret
                                  
                                  	enableCancelSignal:
-0000f6 6078                      		sbr statesFlags0, sf_cancel_signal_enabled
-0000f7 9508                      	ret
+000142 940e 012e                 		call resetSoundState
+000144 6088                      		sbr statesFlags0, sf_cancel_signal_enabled
+000145 9508                      	ret
                                  
                                  	updateProgramTimers:
-0000f8 ef0f                      		ldi temp, 0xff ; preset timer to change overflowing freq
-0000f9 ef10                      		ldi temp2, 0xf0
-0000fa 9300 0089                 		sts tcnt3h, temp
-0000fc 9310 0088                 		sts tcnt3l, temp2
+000146 ef0f                      		ldi temp, 0xff ; preset timer to change overflowing freq
+000147 ef10                      		ldi temp2, 0xf0
+000148 9300 0089                 		sts tcnt3h, temp
+00014a 9310 0088                 		sts tcnt3l, temp2
                                  
-0000fe 7b6f                      		cbr eventsFlags1, ef_update_program_timers
+00014c 7b6f                      		cbr eventsFlags1, ef_update_program_timers
                                  
-0000ff ff72                      		sbrs statesFlags0, sf_conditioner_enabled_n ; if conditioner is not enabled then return emmidiately
-000100 940c 0138                 			jmp updTachTimer
+00014d ff82                      		sbrs statesFlags0, sf_conditioner_enabled_n ; if conditioner is not enabled then return emmidiately
+00014e 940c 0186                 			jmp updTachTimer
                                  		
-000102 e0b1                      		ldi xh, high(updateConditionerTimer) ; get timer from ram
-000103 e1ae                      		ldi xl, low(updateConditionerTimer)
-000104 910c                      		ld temp, x
-000105 9503                      		inc temp
-000106 3f0f                      		cpi temp, 255 ; emulate ovf interruption lol kek ahhahaha :-)))))))
-000107 f011                      			breq setConditionerFlag
-000108 940c 010c                 			jmp saveConditionerTimer
+000150 e0b1                      		ldi xh, high(updateConditionerTimer) ; get timer from ram
+000151 e1ae                      		ldi xl, low(updateConditionerTimer)
+000152 910c                      		ld temp, x
+000153 9503                      		inc temp
+000154 3f0f                      		cpi temp, 255 ; emulate ovf interruption lol kek ahhahaha :-)))))))
+000155 f011                      			breq setConditionerFlag
+000156 940c 015a                 			jmp saveConditionerTimer
                                  
                                  		setConditionerFlag:
-00010a 6052                      			sbr eventsFlags0, ef_update_heater ; create "update_heater" task
+000158 6052                      			sbr eventsFlags0, ef_update_heater ; create "update_heater" task
                                  
-00010b e000                      			ldi temp, 0 ; reset heater update timer
+000159 e000                      			ldi temp, 0 ; reset heater update timer
                                  
                                  		saveConditionerTimer:
-00010c 9300 011e                 			sts updateConditionerTimer, temp ;and save it to ram
+00015a 9300 011e                 			sts updateConditionerTimer, temp ;and save it to ram
                                  
                                  		; CONDITIONER FAN ;
-00010e e0b1                      		ldi xh, high(conditionerFanTimer0) ; get temperature from ram
-00010f e2a1                      		ldi xl, low(conditionerFanTimer0)
-000110 910c                      		ld temp, x
-000111 3f0f                      		cpi temp, 255 
-000112 f029                      			breq checkCondFanTimer1	
-000113 9503                      			inc temp
-000114 9300 0121                 			sts conditionerFanTimer0, temp
-000116 940c 012c                 			jmp endUpdateCondFanTimer
+00015c e0b1                      		ldi xh, high(conditionerFanTimer0) ; get temperature from ram
+00015d e2a1                      		ldi xl, low(conditionerFanTimer0)
+00015e 910c                      		ld temp, x
+00015f 3f0f                      		cpi temp, 255 
+000160 f029                      			breq checkCondFanTimer1	
+000161 9503                      			inc temp
+000162 9300 0121                 			sts conditionerFanTimer0, temp
+000164 940c 017a                 			jmp endUpdateCondFanTimer
                                  
                                  		checkCondFanTimer1:
-000118 ec00                      			ldi temp, 128 + 64
-000119 9300 0121                 			sts conditionerFantimer0, temp
-00011b e0b1                      			ldi xh, high(conditionerFanTimer1)
-00011c e2a2                      			ldi xl, low(conditionerFanTimer1)
-00011d 910c                      			ld temp, x
+000166 ec00                      			ldi temp, 128 + 64
+000167 9300 0121                 			sts conditionerFantimer0, temp
+000169 e0b1                      			ldi xh, high(conditionerFanTimer1)
+00016a e2a2                      			ldi xl, low(conditionerFanTimer1)
+00016b 910c                      			ld temp, x
                                  
-00011e 3f0f                      			cpi temp, 255
-00011f f029                      				breq setUpdateCondFanFlag
-000120 9503                      				inc temp
-000121 9300 0122                 				sts conditionerFanTimer1, temp
-000123 940c 012c                 				jmp endUpdateCondFanTimer
+00016c 3f0f                      			cpi temp, 255
+00016d f029                      				breq setUpdateCondFanFlag
+00016e 9503                      				inc temp
+00016f 9300 0122                 				sts conditionerFanTimer1, temp
+000171 940c 017a                 				jmp endUpdateCondFanTimer
                                  				
                                  				
                                  
                                  		setUpdateCondFanFlag:
-000125 6051                      			sbr eventsFlags0, ef_update_conditioner_fan ; start upate fan task
+000173 6051                      			sbr eventsFlags0, ef_update_conditioner_fan ; start upate fan task
                                  
-000126 ec00                      			ldi temp, 128 + 64
-000127 9300 0121                 			sts conditionerFanTimer0, temp ; reset timer
-000129 ef09                      			ldi temp, condFanSpeed
-00012a 9300 0122                 			sts conditionerFanTimer1, temp
+000174 ec00                      			ldi temp, 128 + 64
+000175 9300 0121                 			sts conditionerFanTimer0, temp ; reset timer
+000177 ef09                      			ldi temp, condFanSpeed
+000178 9300 0122                 			sts conditionerFanTimer1, temp
                                  		
                                  		endUpdateCondFanTimer:
                                  
                                  
                                  
                                  		////////////udpate flaps timer ///////////
-00012c e0b1                      		ldi xh, high(flapsUpdateTimer) ; get flaps timer from ram
-00012d e1af                      		ldi xl, low(flapsUpdateTimer)
-00012e 910c                      		ld temp, x
-00012f 9503                      		inc temp
-000130 3f0f                      		cpi temp, 255 ; emulate ovf interruption lol kek ahhahaha :-)))))))
-000131 f011                      			breq setUpdateFlapsFlag
-000132 940c 0136                 			jmp saveUpdateFlapsTimer
+00017a e0b1                      		ldi xh, high(flapsUpdateTimer) ; get flaps timer from ram
+00017b e1af                      		ldi xl, low(flapsUpdateTimer)
+00017c 910c                      		ld temp, x
+00017d 9503                      		inc temp
+00017e 3f0f                      		cpi temp, 255 ; emulate ovf interruption lol kek ahhahaha :-)))))))
+00017f f011                      			breq setUpdateFlapsFlag
+000180 940c 0184                 			jmp saveUpdateFlapsTimer
                                  
                                  		setUpdateFlapsFlag:
-000134 6260                      			sbr eventsFlags1, ef_update_flaps ; create "update_flaps" task
+000182 6260                      			sbr eventsFlags1, ef_update_flaps ; create "update_flaps" task
                                  
-000135 e000                      			ldi temp, 0 ; reset flaps update timer
+000183 e000                      			ldi temp, 0 ; reset flaps update timer
                                  
                                  		saveUpdateFlapsTimer:
-000136 9300 011f                 			sts flapsUpdateTimer, temp ;and save it to ram
+000184 9300 011f                 			sts flapsUpdateTimer, temp ;and save it to ram
                                  
                                  
                                  		
                                  		updTachTimer:
-000138 e0b1                      		ldi xh, high(tachometerTimerL)
-000139 e2a5                      		ldi xl, low(tachometerTimerL)
-00013a 910c                      		ld temp, x
-00013b 9503                      		inc temp
-00013c 3f0f                      		cpi temp, 255 
-00013d f011                      			breq incrementTachTimerH
-00013e 940c 014b                 			jmp saveTachTimerL
+000186 e0b1                      		ldi xh, high(tachometerTimerL)
+000187 e2a7                      		ldi xl, low(tachometerTimerL)
+000188 910c                      		ld temp, x
+000189 9503                      		inc temp
+00018a 3f0f                      		cpi temp, 255 
+00018b f011                      			breq incrementTachTimerH
+00018c 940c 0199                 			jmp saveTachTimerL
                                  
                                  		incrementTachTimerH:
-000140 e000                      			ldi temp, 0
-000141 9300 0125                 			sts tachometerTimerL, temp
+00018e e000                      			ldi temp, 0
+00018f 9300 0127                 			sts tachometerTimerL, temp
                                  
-000143 e0b1                      			ldi xh, high(tachometerTimerH)
-000144 e2a4                      			ldi xl, low(tachometerTimerH)
-000145 910c                      			ld temp, x
-000146 9503                      			inc temp
-000147 3f0f                      			cpi temp, 255
-000148 f051                      				breq resetTachTimer
-000149 940c 014f                 				jmp saveTachTimerH
+000191 e0b1                      			ldi xh, high(tachometerTimerH)
+000192 e2a6                      			ldi xl, low(tachometerTimerH)
+000193 910c                      			ld temp, x
+000194 9503                      			inc temp
+000195 3f0f                      			cpi temp, 255
+000196 f051                      				breq resetTachTimer
+000197 940c 019d                 				jmp saveTachTimerH
                                  
                                  		saveTachTimerL:
-00014b 9300 0125                 			sts tachometerTimerL, temp
-00014d 940c 015a                 			jmp endTachTimerUpdate
+000199 9300 0127                 			sts tachometerTimerL, temp
+00019b 940c 01a8                 			jmp endTachTimerUpdate
                                  
                                  		saveTachTimerH:
-00014f 9300 0124                 			sts tachometerTimerH, temp
-000151 940c 015a                 			jmp endTachTimerUpdate
+00019d 9300 0126                 			sts tachometerTimerH, temp
+00019f 940c 01a8                 			jmp endTachTimerUpdate
                                  
                                  		resetTachTimer:
-000153 ef0c                      			ldi temp, 128 + 64 + 32 + 16 + 8 + 4
-000154 9300 0124                 			sts tachometerTimerH, temp
-000156 e000                      			ldi temp, 0
-000157 9300 0125                 			sts tachometerTimerL, temp
+0001a1 ef0c                      			ldi temp, 128 + 64 + 32 + 16 + 8 + 4
+0001a2 9300 0126                 			sts tachometerTimerH, temp
+0001a4 e000                      			ldi temp, 0
+0001a5 9300 0127                 			sts tachometerTimerL, temp
                                  			
-000159 6068                      			sbr eventsFlags1, ef_update_tachometer
+0001a7 6068                      			sbr eventsFlags1, ef_update_tachometer
                                  		
                                  		endTachTimerUpdate:
                                  
                                  
                                  		//////////// switch displayed data timer ///////////////////
-00015a e0b1                      		ldi xh, high(switchDisplayDataTimerL) ; get timer from ram
-00015b e1ac                      		ldi xl, low(switchDisplayDataTimerL)
-00015c 910c                      		ld temp, x
-00015d 9503                      		inc temp
-00015e 3f0f                      		cpi temp, 255 ; emulate ovf interruption lol kek ahhahaha :-)))))))
-00015f f021                      			breq incSwitchDisplayDataTimerH
-000160 9300 011c                 			sts switchDisplayDataTimerL, temp
-000162 940c 0173                 			jmp endDisplayDataTimerUpdate
+0001a8 e0b1                      		ldi xh, high(switchDisplayDataTimerL) ; get timer from ram
+0001a9 e1ac                      		ldi xl, low(switchDisplayDataTimerL)
+0001aa 910c                      		ld temp, x
+0001ab 9503                      		inc temp
+0001ac 3f0f                      		cpi temp, 255 ; emulate ovf interruption lol kek ahhahaha :-)))))))
+0001ad f021                      			breq incSwitchDisplayDataTimerH
+0001ae 9300 011c                 			sts switchDisplayDataTimerL, temp
+0001b0 940c 01c1                 			jmp endDisplayDataTimerUpdate
                                  
                                  		incSwitchDisplayDataTimerH:
-000164 e000                      			ldi temp, 0
-000165 9300 011c                 			sts switchDisplayDataTimerL, temp
+0001b2 e000                      			ldi temp, 0
+0001b3 9300 011c                 			sts switchDisplayDataTimerL, temp
                                  
-000167 e0b1                      			ldi xh, high(switchDisplayDataTimerH)
-000168 e1ab                      			ldi xl, low(switchDisplayDataTimerH)
-000169 910c                      			ld temp, x
-00016a 9503                      			inc temp
-00016b 3f0f                      			cpi temp, 255
-00016c f011                      				breq setSwitchDisplayDataFlag
-00016d 940c 0171                 				jmp saveSwitchDisplayDataTimerH
+0001b5 e0b1                      			ldi xh, high(switchDisplayDataTimerH)
+0001b6 e1ab                      			ldi xl, low(switchDisplayDataTimerH)
+0001b7 910c                      			ld temp, x
+0001b8 9503                      			inc temp
+0001b9 3f0f                      			cpi temp, 255
+0001ba f011                      				breq setSwitchDisplayDataFlag
+0001bb 940c 01bf                 				jmp saveSwitchDisplayDataTimerH
                                  
                                  			setSwitchDisplayDataFlag:
-00016f 6062                      				sbr eventsFlags1, ef_switch_display_data
+0001bd 6062                      				sbr eventsFlags1, ef_switch_display_data
                                  
                                  				resetDisplayDataTimerH:
-000170 ee00                      				ldi temp, displayDataSwitchingFreq ; reset  timer
+0001be ee00                      				ldi temp, displayDataSwitchingFreq ; reset  timer
                                  
                                  			saveSwitchDisplayDataTimerH:
-000171 9300 011b                 				sts switchDisplayDataTimerH, temp ;and save it to ram
+0001bf 9300 011b                 				sts switchDisplayDataTimerH, temp ;and save it to ram
                                  		
                                  		endDisplayDataTimerUpdate:
                                  
                                  
                                  		
                                  		////////////udpate check engine temperature timer ///////////
-000173 e0b1                      		ldi xh, high(checkEngineTemperatureTimer) ; get flaps timer from ram
-000174 e2a8                      		ldi xl, low(checkEngineTemperatureTimer)
-000175 910c                      		ld temp, x
-000176 9503                      		inc temp
-000177 3f0f                      		cpi temp, 255 ; emulate ovf interruption lol kek ahhahaha :-)))))))
-000178 f011                      			breq setCheckEngineTemperatureFlag
-000179 940c 017d                 			jmp saveCheckEngineTemperatureTimer
+0001c1 e0b1                      		ldi xh, high(checkEngineTemperatureTimer) ; get flaps timer from ram
+0001c2 e2aa                      		ldi xl, low(checkEngineTemperatureTimer)
+0001c3 910c                      		ld temp, x
+0001c4 9503                      		inc temp
+0001c5 3f0f                      		cpi temp, 255 ; emulate ovf interruption lol kek ahhahaha :-)))))))
+0001c6 f011                      			breq setCheckEngineTemperatureFlag
+0001c7 940c 01cb                 			jmp saveCheckEngineTemperatureTimer
                                  
                                  		setCheckEngineTemperatureFlag:
-00017b 6064                      			sbr eventsFlags1, ef_check_engine_temperature ; create "update_flaps" task
+0001c9 6064                      			sbr eventsFlags1, ef_check_engine_temperature ; create "update_flaps" task
                                  
-00017c e000                      			ldi temp, 0 ; reset flaps update timer
+0001ca e000                      			ldi temp, 0 ; reset flaps update timer
                                  
                                  		saveCheckEngineTemperatureTimer:
-00017d 9300 0128                 			sts checkEngineTemperatureTimer, temp ;and save it to ram
+0001cb 9300 012a                 			sts checkEngineTemperatureTimer, temp ;and save it to ram
                                  
                                  		endCheckEngineTemperatureTimerUpdate:
                                  
-                                 
-00017f e0b1                      		ldi xh, high(handleCurrentKeyTimer)
-000180 e2ab                      		ldi xl, low(handleCurrentKeyTimer)
-000181 910c                      		ld temp, x
-000182 9503                      		inc temp
-000183 3f0e                      		cpi temp, 254
-000184 f410                      			brsh setHandleCurrentKeyFlag
-000185 940c 0189                 			jmp saveHandleCurrentKeyTimer
+                                 		//////// handle the last pressed key timer //////////
+0001cd e0b1                      		ldi xh, high(handleCurrentKeyTimer)
+0001ce e2ad                      		ldi xl, low(handleCurrentKeyTimer)
+0001cf 910c                      		ld temp, x
+0001d0 9503                      		inc temp
+0001d1 3f0e                      		cpi temp, 254
+0001d2 f410                      			brsh setHandleCurrentKeyFlag
+0001d3 940c 01d7                 			jmp saveHandleCurrentKeyTimer
                                  
                                  		setHandleCurrentKeyFlag:
-000187 6061                      			sbr eventsFlags1, ef_handle_current_key
-000188 e000                      			ldi temp, 0
+0001d5 6061                      			sbr eventsFlags1, ef_handle_current_key
+0001d6 e000                      			ldi temp, 0
                                  
                                  		saveHandleCurrentKeyTimer:
-000189 9300 012b                 			sts handleCurrentKeyTimer, temp
+0001d7 9300 012d                 			sts handleCurrentKeyTimer, temp
                                  
                                  		endHandleCrrentKeyTimerUpdate:
                                  
-00018b 9508                      	ret
+                                 
+                                 		////////// outside temp checking timer//////////
+0001d9 e0b1                      		ldi xh, high(checkOutsideTemperatureTimerL) ; get timer from ram
+0001da e2a5                      		ldi xl, low(checkOutsideTemperatureTimerL)
+0001db 910c                      		ld temp, x
+0001dc 9503                      		inc temp
+0001dd 3f0f                      		cpi temp, 255 ; emulate ovf interruption lol kek ahhahaha :-)))))))
+0001de f021                      			breq incCheckOutsideTemperatureTimerH
+0001df 9300 0125                 			sts checkOutsideTemperatureTimerL, temp
+0001e1 940c 01f2                 			jmp endCheckOutsideTemperatreTimerUpdate
+                                 
+                                 		incCheckOutsideTemperatureTimerH:
+0001e3 e000                      			ldi temp, 0
+0001e4 9300 0125                 			sts checkOutsideTemperatureTimerL, temp
+                                 
+0001e6 e0b1                      			ldi xh, high(CheckOutsideTemperatureTimerH)
+0001e7 e2a4                      			ldi xl, low(CheckOutsideTemperatureTimerH)
+0001e8 910c                      			ld temp, x
+0001e9 9503                      			inc temp
+0001ea 3f0f                      			cpi temp, 255
+0001eb f011                      				breq setCheckOutsideTemperatreFlag
+0001ec 940c 01f0                 				jmp saveCheckOutsideTemperatreTimerH
+                                 
+                                 			setCheckOutsideTemperatreFlag:
+0001ee 6870                      				sbr eventsFlags2, ef_check_outside_temperature
+                                 
+                                 				resetCheckOutsideTemperatreTimerH:
+0001ef ef00                      				ldi temp, checkOutsideTemperatureFreq ; reset  timer
+                                 
+                                 			saveCheckOutsideTemperatreTimerH:
+0001f0 9300 0124                 				sts CheckOutsideTemperatureTimerH, temp ;and save it to ram
+                                 		
+                                 		endCheckOutsideTemperatreTimerUpdate:
+                                 
+                                 
+                                 		//////// check accelerations timer //////////
+0001f2 e0b1                      		ldi xh, high(checkAccelerationTimer)
+0001f3 e2ae                      		ldi xl, low(checkAccelerationTimer)
+0001f4 910c                      		ld temp, x
+0001f5 9503                      		inc temp
+0001f6 3f0e                      		cpi temp, 254
+0001f7 f410                      			brsh setCheckAccelerationFlag
+0001f8 940c 01fc                 			jmp saveCheckAccelerationTimer
+                                 
+                                 		setCheckAccelerationFlag:
+0001fa 6470                      			sbr eventsFlags2, ef_check_acceleration
+0001fb e000                      			ldi temp, 0
+                                 
+                                 		saveCheckAccelerationTimer:
+0001fc 9300 012e                 			sts checkAccelerationTimer, temp
+                                 
+                                 		endCheckAccelerationUpdate:
+                                 
+                                 
+0001fe 9508                      	ret
                                  
                                  
                                  	rizeTemperature:
-00018c ff72                      		sbrs statesFlags0, sf_conditioner_enabled_n ; if conditioner is not enabled then return emmidiately
-00018d 9508                      			ret
+0001ff ff82                      		sbrs statesFlags0, sf_conditioner_enabled_n ; if conditioner is not enabled then return emmidiately
+000200 9508                      			ret
                                  		
-00018e 940e 00f2                 		call enableClickSignal ; make click sound
-000190 e000                      		ldi temp, 0
-000191 9300 012a                 		sts currentKey, temp
-000193 e0b1                      		ldi xh, high(targetTemperature) ; get temperature from ram
-000194 e1ad                      		ldi xl, low(targetTemperature)
-000195 910c                      		ld temp, x
-000196 9503                      		inc temp ; increment temperature
+000201 940e 013a                 		call enableClickSignal ; make click sound
+000203 e000                      		ldi temp, 0
+000204 9300 012c                 		sts currentKey, temp
+000206 e0b1                      		ldi xh, high(targetTemperature) ; get temperature from ram
+000207 e1ad                      		ldi xl, low(targetTemperature)
+000208 910c                      		ld temp, x
+000209 9503                      		inc temp ; increment temperature
                                  		
-000197 310f                      		cpi temp, 31 ; limit temperature to 30 grad
-000198 f008                      			brlo saveTemperatureToRam
-000199 e10e                      			ldi temp, 30
+00020a 310f                      		cpi temp, 31 ; limit temperature to 30 grad
+00020b f008                      			brlo saveTemperatureToRam
+00020c e10e                      			ldi temp, 30
                                  
                                  		saveTemperatureToRam:
-00019a 9300 011d                 			sts targetTemperature, temp ;and save it to ram
+00020d 9300 011d                 			sts targetTemperature, temp ;and save it to ram
                                  
-00019c 6054                      		sbr eventsFlags0, ef_save_target_temperature
-00019d 9508                      	ret
+00020f 6054                      		sbr eventsFlags0, ef_save_target_temperature
+000210 9508                      	ret
                                  
                                  	lowerTemperature:
-00019e ff72                      		sbrs statesFlags0, sf_conditioner_enabled_n ; if conditioner is not enabled then return emmidiately
-00019f 9508                      			ret
+000211 ff82                      		sbrs statesFlags0, sf_conditioner_enabled_n ; if conditioner is not enabled then return emmidiately
+000212 9508                      			ret
                                  		
-0001a0 940e 00f2                 		call enableClickSignal ; make click sound
+000213 940e 013a                 		call enableClickSignal ; make click sound
                                  
-0001a2 e000                      		ldi temp, 0
-0001a3 9300 012a                 		sts currentKey, temp
-0001a5 e0b1                      		ldi xh, high(targetTemperature) ; get temperature from ram
-0001a6 e1ad                      		ldi xl, low(targetTemperature)
-0001a7 910c                      		ld temp, x
-0001a8 950a                      		dec temp ; decrement temperature
+000215 e000                      		ldi temp, 0
+000216 9300 012c                 		sts currentKey, temp
+000218 e0b1                      		ldi xh, high(targetTemperature) ; get temperature from ram
+000219 e1ad                      		ldi xl, low(targetTemperature)
+00021a 910c                      		ld temp, x
+00021b 950a                      		dec temp ; decrement temperature
                                  
-0001a9 300a                      		cpi temp, 10 ; limit temperature to 30 grad
-0001aa f77c                      			brge saveTemperatureToRam
-0001ab e00a                      			ldi temp, 10
+00021c 300a                      		cpi temp, 10 ; limit temperature to 30 grad
+00021d f77c                      			brge saveTemperatureToRam
+00021e e00a                      			ldi temp, 10
                                  
-0001ac 9300 011d                 		sts targetTemperature, temp ;and save it to ram
+00021f 9300 011d                 		sts targetTemperature, temp ;and save it to ram
                                  
-0001ae 6054                      		sbr eventsFlags0, ef_save_target_temperature
-0001af 9508                      	ret
+000221 6054                      		sbr eventsFlags0, ef_save_target_temperature
+000222 9508                      	ret
                                  
                                  	switchConditioner:
-0001b0 e000                      		ldi temp, 0
-0001b1 9300 012a                 		sts currentKey, temp
-0001b3 ff72                      		sbrs statesFlags0, sf_conditioner_enabled_n
-0001b4 940c 01b8                 			jmp cond_en
-0001b6 940c 01bd                 			jmp cond_dis
+000223 e000                      		ldi temp, 0
+000224 9300 012c                 		sts currentKey, temp
+000226 ff82                      		sbrs statesFlags0, sf_conditioner_enabled_n
+000227 940c 022b                 			jmp cond_en
+000229 940c 0230                 			jmp cond_dis
                                  
                                  		cond_en:
-0001b8 6074                      			sbr statesFlags0, sf_conditioner_enabled
-0001b9 940e 00f4                 			call enableAcceptSignal
-0001bb 940c 01c4                 			jmp endSwitchConditioner
+00022b 6084                      			sbr statesFlags0, sf_conditioner_enabled
+00022c 940e 013e                 			call enableAcceptSignal
+00022e 940c 0237                 			jmp endSwitchConditioner
                                  		cond_dis:
-0001bd 7f7b                      			cbr statesFlags0, sf_conditioner_enabled
-0001be 940e 00f6                 			call enableCancelSignal
-0001c0 9818                      			cbi porte, heater_pin_number
-0001c1 9819                      			cbi porte, cooler_pin_number
-0001c2 940c 01c4                 			jmp endSwitchConditioner
+000230 7f8b                      			cbr statesFlags0, sf_conditioner_enabled
+000231 940e 0142                 			call enableCancelSignal
+000233 9818                      			cbi porte, heater_pin_number
+000234 9819                      			cbi porte, cooler_pin_number
+000235 940c 0237                 			jmp endSwitchConditioner
                                  		endSwitchConditioner:
-0001c4 9508                      	ret
+000237 9508                      	ret
                                  
                                  
                                  
                                  	saveTargetTemperature:
-0001c5 99e1                      		sbic eecr, eewe ; wait for completion of previous write
-0001c6 940c 01d2                 			jmp endWritingAttempt
-0001c8 e000                      		ldi temp, targetTempSavingAddr ; setup address where to wirte
-0001c9 bb0f                      		out eearh, temp
-0001ca bb0e                      		out eearl, temp
+000238 99e1                      		sbic eecr, eewe ; wait for completion of previous write
+000239 940c 0245                 			jmp endWritingAttempt
+00023b e000                      		ldi temp, targetTempSavingAddr ; setup address where to wirte
+00023c bb0f                      		out eearh, temp
+00023d bb0e                      		out eearl, temp
                                  		
-0001cb e0b1                      		ldi xh, high(targetTemperature) ; get temperature from ram
-0001cc e1ad                      		ldi xl, low(targetTemperature)
-0001cd 910c                      		ld temp, x
+00023e e0b1                      		ldi xh, high(targetTemperature) ; get temperature from ram
+00023f e1ad                      		ldi xl, low(targetTemperature)
+000240 910c                      		ld temp, x
                                  
-0001ce bb0d                      		out eedr, temp ; store data to data register
-0001cf 9ae2                      		sbi eecr, eemwe ; write logical one to eemwe
-0001d0 9ae1                      		sbi eecr, eewe ; start eeprom write by setting eewe
+000241 bb0d                      		out eedr, temp ; store data to data register
+000242 9ae2                      		sbi eecr, eemwe ; write logical one to eemwe
+000243 9ae1                      		sbi eecr, eewe ; start eeprom write by setting eewe
                                  
-0001d1 7f5b                      		cbr eventsFlags0, ef_save_target_temperature ; end writing task
+000244 7f5b                      		cbr eventsFlags0, ef_save_target_temperature ; end writing task
                                  
                                  		endWritingAttempt:
                                  
-0001d2 9508                      	ret
+000245 9508                      	ret
                                  
                                  	loadTargetTemperature:
-0001d3 99e1                      		sbic eecr, eewe ; wait for completion of previous write
-0001d4 940c 01de                 			jmp endReadAttempt
-0001d6 e000                      		ldi temp, targetTempSavingAddr
-0001d7 bb0f                      		out eearh, temp
-0001d8 bb0e                      		out eearl, temp
-0001d9 9ae0                      		sbi  eecr, eere ; start eeprom read by writing eere
-0001da b30d                      		in temp, eedr ; read data from data register
-0001db 9300 011d                 		sts targetTemperature, temp
+000246 99e1                      		sbic eecr, eewe ; wait for completion of previous write
+000247 940c 0251                 			jmp endReadAttempt
+000249 e000                      		ldi temp, targetTempSavingAddr
+00024a bb0f                      		out eearh, temp
+00024b bb0e                      		out eearl, temp
+00024c 9ae0                      		sbi  eecr, eere ; start eeprom read by writing eere
+00024d b30d                      		in temp, eedr ; read data from data register
+00024e 9300 011d                 		sts targetTemperature, temp
                                  
-0001dd 776f                      		cbr eventsFlags1, ef_load_target_temp ; end loading task if it success
+000250 776f                      		cbr eventsFlags1, ef_load_target_temp ; end loading task if it success
                                  		
                                  		endReadAttempt:
-0001de 9508                      	ret
+000251 9508                      	ret
                                  
                                  	checkEngineTemperature:
-0001df 7f6b                      		cbr eventsFlags1, ef_check_engine_temperature
-0001e0 e0b1                      		ldi xh, high(analogValuesTable) ; get engine temperature from ram
-0001e1 e0a0                      		ldi xl, low(analogValuesTable)
-0001e2 e032                      		ldi temp4, engineThermalSensorNum
-0001e3 0fa3                      		add xl, temp4
-0001e4 910c                      		ld temp, x
+000252 7f6b                      		cbr eventsFlags1, ef_check_engine_temperature
+000253 e0b1                      		ldi xh, high(analogValuesTable) ; get engine temperature from ram
+000254 e0a0                      		ldi xl, low(analogValuesTable)
+000255 e032                      		ldi temp4, engineThermalSensorNum
+000256 0fa3                      		add xl, temp4
+000257 910c                      		ld temp, x
                                  
-0001e5 3f08                      		cpi temp, 128 + 120 ; if engine temperature is more than 120C
-0001e6 f410                      			brsh enableEngineTempWarning
-0001e7 940c 01ea                 			jmp endEngineTemperatureCheck
+000258 3f08                      		cpi temp, 128 + 120 ; if engine temperature is more than 120C
+000259 f410                      			brsh enableEngineTempWarning
+00025a 940c 025e                 			jmp endEngineTemperatureCheck
                                  			
                                  		enableEngineTempWarning:
-0001e9 6470                      			sbr statesFlags0, sf_warning_signal_enabled
+00025c 940e 0134                 			call enableWarningSignal
                                  
                                  		endEngineTemperatureCheck:
-0001ea 9508                      	ret
+00025e 9508                      	ret
+                                 
+                                 	checkOutsideTemperature:
+00025f 777f                      		cbr eventsFlags2, ef_check_outside_temperature
+                                 
+000260 e0b1                      		ldi xh, high(analogValuesTable) ; get engine temperature from ram
+000261 e0a0                      		ldi xl, low(analogValuesTable)
+000262 e031                      		ldi temp4, outsideThermalSensorNum
+000263 0fa3                      		add xl, temp4
+000264 910c                      		ld temp, x
+                                 
+000265 3c06                      		cpi temp, 128 + 70 ; if  temperature is more then 70C than warning
+000266 f420                      			brsh enableOutsideTempWarning
+000267 3300                      		cpi temp, 128 - 80 ; if temperature lower then -80 than warning
+000268 f010                      			brlo enableOutsideTempWarning
+000269 940c 026d                 			jmp endOutsideTemperatureCheck
+                                 			
+                                 		enableOutsideTempWarning:
+00026b 940e 0134                 			call enableWarningSignal
+                                 
+                                 		endOutsideTemperatureCheck:
+00026d 9508                      	ret
                                  
                                  	updateConditioner:
-0001eb ff72                      		sbrs statesFlags0, sf_conditioner_enabled_n ; if conditioner is not enabled then return emmidiately
-0001ec 9508                      			ret
-0001ed 7f5d                      		cbr eventsFlags0, ef_update_heater
+00026e ff82                      		sbrs statesFlags0, sf_conditioner_enabled_n ; if conditioner is not enabled then return emmidiately
+00026f 9508                      			ret
+000270 7f5d                      		cbr eventsFlags0, ef_update_heater
                                  
-0001ee e0b1                      		ldi xh, high(targetTemperature) ; get target temperature from ram
-0001ef e1ad                      		ldi xl, low(targetTemperature)
-0001f0 910c                      		ld temp, x
+000271 e0b1                      		ldi xh, high(targetTemperature) ; get target temperature from ram
+000272 e1ad                      		ldi xl, low(targetTemperature)
+000273 910c                      		ld temp, x
                                  
-0001f1 310f                      		cpi temp, 31
-0001f2 f480                      			brsh condTemperatureWarning
-0001f3 300a                      		cpi temp, 10
-0001f4 f070                      			brlo condTemperatureWarning
+000274 310f                      		cpi temp, 31
+000275 f480                      			brsh condTemperatureWarning
+000276 300a                      		cpi temp, 10
+000277 f070                      			brlo condTemperatureWarning
                                  
-0001f5 e0b1                      		ldi xh, high(analogValuesTable) ; get current temperature from ram
-0001f6 e0a0                      		ldi xl, low(analogValuesTable)
-0001f7 911c                      		ld temp2, x
+000278 e0b1                      		ldi xh, high(analogValuesTable) ; get current temperature from ram
+000279 e0a0                      		ldi xl, low(analogValuesTable)
+00027a 911c                      		ld temp2, x
                                  
                                  		
                                  
-0001f8 e0b1                      		ldi xh, high(analogValuesTable) ; get outside temperature from ram
-0001f9 e0a0                      		ldi xl, low(analogValuesTable)
-0001fa e031                      		ldi temp4, outsideThermalSensorNum
-0001fb 0fa3                      		add xl, temp4
-0001fc 913c                      		ld temp4, x
+00027b e0b1                      		ldi xh, high(analogValuesTable) ; get outside temperature from ram
+00027c e0a0                      		ldi xl, low(analogValuesTable)
+00027d e031                      		ldi temp4, outsideThermalSensorNum
+00027e 0fa3                      		add xl, temp4
+00027f 913c                      		ld temp4, x
                                  
-0001fd 3c16                      		cpi temp2, 128 + 70 ; + 70C
-0001fe f420                      			brsh condTemperatureWarning
-0001ff 3310                      		cpi temp2, 128 - 80
-000200 f010                      			brlo condTemperatureWarning ; -80C
-000201 940c 0204                 		jmp updateHeater
+000280 3c16                      		cpi temp2, 128 + 70 ; + 70C
+000281 f420                      			brsh condTemperatureWarning
+000282 3310                      		cpi temp2, 128 - 80
+000283 f010                      			brlo condTemperatureWarning ; -80C
+000284 940c 0288                 		jmp updateHeater
                                  
                                  		condTemperatureWarning:
-000203 6470                      			sbr statesFlags0, sf_warning_signal_enabled
+000286 940e 0134                 			call enableWarningSignal
                                  
                                  		updateHeater:
-000204 3810                      		cpi temp2, 128 ; if temperature is minus then enable heater emmediately 
-000205 f048                      			brlo enableHeater
-000206 5810                      			subi temp2, 128
+000288 3810                      		cpi temp2, 128 ; if temperature is minus then enable heater emmediately 
+000289 f048                      			brlo enableHeater
+00028a 5810                      			subi temp2, 128
                                  		
-000207 1710                      		cp temp2, temp
-000208 f030                      			brlo enableHeater
-000209 940c 020b                 			jmp disableHeater
+00028b 1710                      		cp temp2, temp
+00028c f030                      			brlo enableHeater
+00028d 940c 028f                 			jmp disableHeater
                                  
                                  		disableHeater: ; ye ye ye useless, but just for code readability
-00020b 9818                      			cbi porte, heater_pin_number
-00020c 9a19                      			sbi porte, cooler_pin_number
-00020d 940c 0211                 			jmp endUpdateConditioner
+00028f 9818                      			cbi porte, heater_pin_number
+000290 9a19                      			sbi porte, cooler_pin_number
+000291 940c 0295                 			jmp endUpdateConditioner
                                  
                                  		enableHeater:
-00020f 9a18                      			sbi porte, heater_pin_number
-000210 9819                      			cbi porte, cooler_pin_number
+000293 9a18                      			sbi porte, heater_pin_number
+000294 9819                      			cbi porte, cooler_pin_number
                                  
                                  		; TODO add hummidity sensor and regulate it
                                  
                                  		endUpdateConditioner: 
-000211 940e 0216                 		call resolveEngineFlap
-000213 940e 0231                 		call resolveOutsideFlap
-000215 9508                      	ret
+000295 940e 029a                 		call resolveEngineFlap
+000297 940e 02b5                 		call resolveOutsideFlap
+000299 9508                      	ret
                                  
                                  	resolveEngineFlap:
-000216 e0b1                      		ldi xh, high(analogValuesTable) ; get current temperature from ram
-000217 e0a0                      		ldi xl, low(analogValuesTable)
-000218 910c                      		ld temp, x
+00029a e0b1                      		ldi xh, high(analogValuesTable) ; get current temperature from ram
+00029b e0a0                      		ldi xl, low(analogValuesTable)
+00029c 910c                      		ld temp, x
                                  
-000219 e0b1                      		ldi xh, high(analogValuesTable) ; get engine temperature from ram
-00021a e0a0                      		ldi xl, low(analogValuesTable)
-00021b e032                      		ldi temp4, engineThermalSensorNum
-00021c 0fa3                      		add xl, temp4
-00021d 911c                      		ld temp2, x	
+00029d e0b1                      		ldi xh, high(analogValuesTable) ; get engine temperature from ram
+00029e e0a0                      		ldi xl, low(analogValuesTable)
+00029f e032                      		ldi temp4, engineThermalSensorNum
+0002a0 0fa3                      		add xl, temp4
+0002a1 911c                      		ld temp2, x	
                                  
-00021e 1701                      		cp temp, temp2
-00021f f038                      			brlo checkIfNeedWarmup
-000220 940c 0222                 			jmp checkIfNeedCooldown
+0002a2 1701                      		cp temp, temp2
+0002a3 f038                      			brlo checkIfNeedWarmup
+0002a4 940c 02a6                 			jmp checkIfNeedCooldown
                                  
                                  		checkIfNeedCooldown:
-000222 9919                      			sbic porte, cooler_pin_number
-000223 940c 022c                 				jmp openEngineFlap
-000225 940c 022f                 				jmp closeEngineFlap
+0002a6 9919                      			sbic porte, cooler_pin_number
+0002a7 940c 02b0                 				jmp openEngineFlap
+0002a9 940c 02b3                 				jmp closeEngineFlap
                                  
                                  		checkIfNeedWarmup:
-000227 9918                      			sbic porte, heater_pin_number
-000228 940c 022c                 				jmp openEngineFlap
-00022a 940c 022f                 				jmp closeEngineFlap
+0002ab 9918                      			sbic porte, heater_pin_number
+0002ac 940c 02b0                 				jmp openEngineFlap
+0002ae 940c 02b3                 				jmp closeEngineFlap
                                  
                                  		openEngineFlap:
-00022c 9a97                      			sbi portd, engine_flap_pin_num
-00022d 940c 0230                 			jmp endResolveEngineFlap
+0002b0 9a97                      			sbi portd, engine_flap_pin_num
+0002b1 940c 02b4                 			jmp endResolveEngineFlap
                                  
                                  		closeEngineFlap:
-00022f 9897                      			cbi portd, engine_flap_pin_num
+0002b3 9897                      			cbi portd, engine_flap_pin_num
                                  
                                  		endResolveEngineFlap:
-000230 9508                      	ret
+0002b4 9508                      	ret
                                  
                                  	resolveOutsideFlap:
-000231 e0b1                      		ldi xh, high(analogValuesTable) ; get current temperature from ram
-000232 e0a0                      		ldi xl, low(analogValuesTable)
-000233 910c                      		ld temp, x
+0002b5 e0b1                      		ldi xh, high(analogValuesTable) ; get current temperature from ram
+0002b6 e0a0                      		ldi xl, low(analogValuesTable)
+0002b7 910c                      		ld temp, x
                                  
-000234 e0b1                      		ldi xh, high(analogValuesTable) ; get outside temperature from ram
-000235 e0a0                      		ldi xl, low(analogValuesTable)
-000236 e031                      		ldi temp4, outsideThermalSensorNum
-000237 0fa3                      		add xl, temp4
-000238 911c                      		ld temp2, x	
+0002b8 e0b1                      		ldi xh, high(analogValuesTable) ; get outside temperature from ram
+0002b9 e0a0                      		ldi xl, low(analogValuesTable)
+0002ba e031                      		ldi temp4, outsideThermalSensorNum
+0002bb 0fa3                      		add xl, temp4
+0002bc 911c                      		ld temp2, x	
                                  
-000239 1701                      		cp temp, temp2
-00023a f038                      			brlo checkIfNeedWarmupFromOutside
-00023b 940c 023d                 			jmp checkIfNeedCooldownFromOutside
+0002bd 1701                      		cp temp, temp2
+0002be f038                      			brlo checkIfNeedWarmupFromOutside
+0002bf 940c 02c1                 			jmp checkIfNeedCooldownFromOutside
                                  
                                  		checkIfNeedCooldownFromOutside:
-00023d 9919                      			sbic porte, cooler_pin_number
-00023e 940c 0247                 				jmp openOutsideFlap
-000240 940c 024a                 				jmp closeOutsideFlap
+0002c1 9919                      			sbic porte, cooler_pin_number
+0002c2 940c 02cb                 				jmp openOutsideFlap
+0002c4 940c 02ce                 				jmp closeOutsideFlap
                                  
                                  		checkIfNeedWarmupFromOutside:
-000242 9918                      			sbic porte, heater_pin_number
-000243 940c 0247                 				jmp openOutsideFlap
-000245 940c 024a                 				jmp closeOutsideFlap
+0002c6 9918                      			sbic porte, heater_pin_number
+0002c7 940c 02cb                 				jmp openOutsideFlap
+0002c9 940c 02ce                 				jmp closeOutsideFlap
                                  
                                  		openOutsideFlap:
-000247 9a96                      			sbi portd, outside_flap_pin_num
-000248 940c 024b                 			jmp endResolveOutsideFlap
+0002cb 9a96                      			sbi portd, outside_flap_pin_num
+0002cc 940c 02cf                 			jmp endResolveOutsideFlap
                                  
                                  		closeOutsideFlap:
-00024a 9896                      			cbi portd, outside_flap_pin_num
+0002ce 9896                      			cbi portd, outside_flap_pin_num
                                  
                                  		endResolveOutsideFlap:
                                  
-00024b 9508                      	ret
+0002cf 9508                      	ret
                                  
                                  	updateConditionerFan:
-00024c ff72                      		sbrs statesFlags0, sf_conditioner_enabled_n ; if conditioner is not enabled then return emmidiately
-00024d 9508                      			ret
-00024e 7f5e                      		cbr eventsFlags0, ef_update_conditioner_fan
+0002d0 ff82                      		sbrs statesFlags0, sf_conditioner_enabled_n ; if conditioner is not enabled then return emmidiately
+0002d1 9508                      			ret
+0002d2 7f5e                      		cbr eventsFlags0, ef_update_conditioner_fan
                                  
-00024f e0b1                      		ldi xh, high(conditionerFanState) ; get fan state from ram
-000250 e2a3                      		ldi xl, low(conditionerFanState)
-000251 910c                      		ld temp, x
-000252 3000                      		cpi temp, 0
-000253 f029                      			breq resetCondFanState
+0002d3 e0b1                      		ldi xh, high(conditionerFanState) ; get fan state from ram
+0002d4 e2a3                      		ldi xl, low(conditionerFanState)
+0002d5 910c                      		ld temp, x
+0002d6 3000                      		cpi temp, 0
+0002d7 f029                      			breq resetCondFanState
                                  
-000254 9506                      		lsr temp
-000255 3008                      		cpi temp, 0b00001000 ; if we are trying to lightup pin not connected to fan then reset it 
-000256 f011                      			breq resetCondFanState
-000257 940c 025a                 			jmp saveCondFanState
+0002d8 9506                      		lsr temp
+0002d9 3008                      		cpi temp, 0b00001000 ; if we are trying to lightup pin not connected to fan then reset it 
+0002da f011                      			breq resetCondFanState
+0002db 940c 02de                 			jmp saveCondFanState
                                  		resetCondFanState:
-000259 e800                      			ldi temp, 0b10000000
+0002dd e800                      			ldi temp, 0b10000000
                                  		saveCondFanState:
-00025a 9300 0123                 			sts conditionerFanState, temp ;and save it to ram	
-00025c b113                      			in temp2, porte ; get current state of prote (to not broke other stuff connected to this port)
-00025d 701f                      			andi temp2, 0b00001111
-00025e 2b10                      			or temp2, temp ; out new fan state to porte
-00025f b913                      			out porte, temp2
-000260 9508                      	ret
+0002de 9300 0123                 			sts conditionerFanState, temp ;and save it to ram	
+0002e0 b113                      			in temp2, porte ; get current state of prote (to not broke other stuff connected to this port)
+0002e1 701f                      			andi temp2, 0b00001111
+0002e2 2b10                      			or temp2, temp ; out new fan state to porte
+0002e3 b913                      			out porte, temp2
+0002e4 9508                      	ret
                                  
                                  	updateFlaps:
-000261 ff72                      		sbrs statesFlags0, sf_conditioner_enabled_n ; if conditioner is not enabled then return emmidiately
-000262 9508                      			ret
-000263 7d6f                      		cbr eventsFlags1, ef_update_flaps
+0002e5 ff82                      		sbrs statesFlags0, sf_conditioner_enabled_n ; if conditioner is not enabled then return emmidiately
+0002e6 9508                      			ret
+0002e7 7d6f                      		cbr eventsFlags1, ef_update_flaps
                                  
-000264 e0f1                      		ldi zh, high(currentControlledFlap) ; get the number of a flap we wanna update now
-000265 e2e0                      		ldi zl, low(currentControlledFlap)
-000266 8100                      		ld temp, z
+0002e8 e0f1                      		ldi zh, high(currentControlledFlap) ; get the number of a flap we wanna update now
+0002e9 e2e0                      		ldi zl, low(currentControlledFlap)
+0002ea 8100                      		ld temp, z
                                  
-000267 e0b1                      		ldi xh, high(analogValuesTable) ; get current state of needed flap control from ram
-000268 e0a0                      		ldi xl, low(analogValuesTable)
-000269 e028                      		ldi temp3, 8 ; flaps controlls data begins from 8th byte
-00026a 0fa2                      		add xl, temp3 
-00026b 0fa0                      		add xl, temp ; ofset to current flap control byte
+0002eb e0b1                      		ldi xh, high(analogValuesTable) ; get current state of needed flap control from ram
+0002ec e0a0                      		ldi xl, low(analogValuesTable)
+0002ed e028                      		ldi temp3, 8 ; flaps controlls data begins from 8th byte
+0002ee 0fa2                      		add xl, temp3 
+0002ef 0fa0                      		add xl, temp ; ofset to current flap control byte
                                  	
-00026c 911c                      		ld temp2, x
+0002f0 911c                      		ld temp2, x
                                  
-00026d 7c10                      		andi temp2, 0b11000000 ; leave only two most significant byts (every falp will have only 4 possible states)
-00026e 9512                      		swap temp2
+0002f1 7c10                      		andi temp2, 0b11000000 ; leave only two most significant byts (every falp will have only 4 possible states)
+0002f2 9512                      		swap temp2
                                  
-00026f b121                      		in temp3, pine ; get the contents from porte
-000270 7f23                      		andi temp3, 0b11110011 ; clear two pins controlling the flaps to rewrite them in next two commands
-000271 2b21                      		or temp3, temp2 ; and combine it with the date we wanno output
-000272 b923                      		out porte, temp3 ; then... output
+0002f3 b121                      		in temp3, pine ; get the contents from porte
+0002f4 7f23                      		andi temp3, 0b11110011 ; clear two pins controlling the flaps to rewrite them in next two commands
+0002f5 2b21                      		or temp3, temp2 ; and combine it with the date we wanno output
+0002f6 b923                      		out porte, temp3 ; then... output
                                  
-000273 b120                      		in temp3, pinf ; the same trick with two pins of portf (selecting one of our 4 flaps)
-000274 732f                      		andi temp3, 0b00111111 
-000275 2f10                      		mov temp2, temp
-000276 9512                      		swap temp2
-000277 0f11                      		lsl temp2
-000278 0f11                      		lsl temp2
-000279 2b21                      		or temp3, temp2
-00027a 9320 0062                 		sts portf, temp3
+0002f7 b120                      		in temp3, pinf ; the same trick with two pins of portf (selecting one of our 4 flaps)
+0002f8 732f                      		andi temp3, 0b00111111 
+0002f9 2f10                      		mov temp2, temp
+0002fa 9512                      		swap temp2
+0002fb 0f11                      		lsl temp2
+0002fc 0f11                      		lsl temp2
+0002fd 2b21                      		or temp3, temp2
+0002fe 9320 0062                 		sts portf, temp3
                                  
-00027c 9503                      		inc temp
+000300 9503                      		inc temp
                                  		
-00027d 3004                      		cpi temp, 4 ; if next selected falp as "non existing" 5th flap then fump to first one 
-00027e f410                      			brsh jumpToFirstFlap
-00027f 940c 0282                 			jmp saveNextFlapNum
+000301 3004                      		cpi temp, 4 ; if next selected falp as "non existing" 5th flap then fump to first one 
+000302 f410                      			brsh jumpToFirstFlap
+000303 940c 0306                 			jmp saveNextFlapNum
                                  		
                                  		jumpToFirstFlap:
-000281 e000                      			ldi temp, 0
+000305 e000                      			ldi temp, 0
                                  
                                  		saveNextFlapNum:
-000282 9300 0120                 			sts currentControlledFlap, temp
-000284 9508                      	ret
+000306 9300 0120                 			sts currentControlledFlap, temp
+000308 9508                      	ret
                                  
                                  
                                  	updateSoundType:
-000285 7b5f                      		cbr eventsFlags0, ef_update_sound_type
+000309 7b5f                      		cbr eventsFlags0, ef_update_sound_type
                                  
-000286 ef00                      		ldi temp, soundSignalsDelay ; reset timer immediately
-000287 bf02                      		out tcnt0, temp
+00030a ef00                      		ldi temp, soundSignalsDelay ; reset timer immediately
+00030b bf02                      		out tcnt0, temp
                                  		
-000288 fd76                      		sbrc statesFlags0, sf_warning_signal_enabled_n
-000289 940c 0295                 			jmp updateWarningSignal ; if warning signal is enabled then update it
-00028b fd75                      		sbrc statesFlags0, sf_click_signal_enabled_n
-00028c 940c 02a1                 			jmp updateClickSignal
-00028e fd74                      		sbrc statesFlags0, sf_accept_signal_enabled_n
-00028f 940c 02ae                 			jmp updateAcceptSignal
-000291 fd73                      		sbrc statesFlags0, sf_cancel_signal_enabled_n
-000292 940c 02c6                 			jmp updateCancelSignal
-000294 9508                      		ret	
+00030c fd86                      		sbrc statesFlags0, sf_warning_signal_enabled_n
+00030d 940c 0319                 			jmp updateWarningSignal ; if warning signal is enabled then update it
+00030f fd85                      		sbrc statesFlags0, sf_click_signal_enabled_n
+000310 940c 0325                 			jmp updateClickSignal
+000312 fd84                      		sbrc statesFlags0, sf_accept_signal_enabled_n
+000313 940c 0332                 			jmp updateAcceptSignal
+000315 fd83                      		sbrc statesFlags0, sf_cancel_signal_enabled_n
+000316 940c 034a                 			jmp updateCancelSignal
+000318 9508                      		ret	
                                  
                                  		updateWarningSignal:	
-000295 ff77                      			sbrs statesFlags0, sf_sound_enabled_n
-000296 940c 029a                 				jmp warningSound_case_0
-000298 940c 029f                 				jmp warningSound_case_1
+000319 ff87                      			sbrs statesFlags0, sf_sound_enabled_n
+00031a 940c 031e                 				jmp warningSound_case_0
+00031c 940c 0323                 				jmp warningSound_case_1
                                  				warningSound_case_0:
-00029a ef0c                      					ldi temp, tone0
-00029b 9300 0129                 					sts currentTone, temp ; set sound tone
-00029d 6870                      					sbr statesFlags0, sf_sound_enabled ; enable sound
-00029e 9508                      				ret
+00031e ef0c                      					ldi temp, tone0
+00031f 9300 012b                 					sts currentTone, temp ; set sound tone
+000321 6880                      					sbr statesFlags0, sf_sound_enabled ; enable sound
+000322 9508                      				ret
                                  
                                  				warningSound_case_1:
-00029f 777f                      					cbr statesFlags0, sf_sound_enabled ; disable sound
-0002a0 9508                      				ret
+000323 778f                      					cbr statesFlags0, sf_sound_enabled ; disable sound
+000324 9508                      				ret
                                  
                                  		updateClickSignal:
-0002a1 ff77                      			sbrs statesFlags0, sf_sound_enabled_n
-0002a2 940c 02a6                 				jmp clickSound_case_0 ; if we haven't clicked yet than click
-0002a4 940c 02ab                 				jmp clickSound_case_1 ; otherwise end lcick signal
+000325 ff87                      			sbrs statesFlags0, sf_sound_enabled_n
+000326 940c 032a                 				jmp clickSound_case_0 ; if we haven't clicked yet than click
+000328 940c 032f                 				jmp clickSound_case_1 ; otherwise end lcick signal
                                  
                                  				clickSound_case_0:
-0002a6 ef0c                      					ldi temp, tone0
-0002a7 9300 0129                 					sts currentTone, temp ; set low sound tone  
-0002a9 6870                      					sbr statesFlags0, sf_sound_enabled ; enable sound
-0002aa 9508                      				ret
+00032a ef0c                      					ldi temp, tone0
+00032b 9300 012b                 					sts currentTone, temp ; set low sound tone  
+00032d 6880                      					sbr statesFlags0, sf_sound_enabled ; enable sound
+00032e 9508                      				ret
                                  
                                  				clickSound_case_1:
-0002ab 7d7f                      					cbr statesFlags0, sf_click_signal_enabled ; end click sound
-0002ac 777f                      					cbr statesFlags0, sf_sound_enabled ; disable sound
-0002ad 9508                      				ret
+00032f 7d8f                      					cbr statesFlags0, sf_click_signal_enabled ; end click sound
+000330 778f                      					cbr statesFlags0, sf_sound_enabled ; disable sound
+000331 9508                      				ret
                                  
                                  		updateAcceptSignal:
-0002ae ff77                      			sbrs statesFlags0, sf_sound_enabled_n
-0002af 940c 02b3                 				jmp acceptSound_case0 ; if sound is not enabled yet than enable it and set tone low
-0002b1 940c 02b8                 				jmp acceptSound_case1 ; otherwise if tone low then make it high. if tone high than end accept signal
+000332 ff87                      			sbrs statesFlags0, sf_sound_enabled_n
+000333 940c 0337                 				jmp acceptSound_case0 ; if sound is not enabled yet than enable it and set tone low
+000335 940c 033c                 				jmp acceptSound_case1 ; otherwise if tone low then make it high. if tone high than end accept signal
                                  
                                  				acceptSound_case0:	
-0002b3 ef0c                      					ldi temp, tone0		
-0002b4 9300 0129                 					sts currentTone, temp ; set low sound tone  
-0002b6 6870                      					sbr statesFlags0, sf_sound_enabled ; enable sound
-0002b7 9508                      				ret
+000337 ef0c                      					ldi temp, tone0		
+000338 9300 012b                 					sts currentTone, temp ; set low sound tone  
+00033a 6880                      					sbr statesFlags0, sf_sound_enabled ; enable sound
+00033b 9508                      				ret
                                  
                                  				acceptSound_case1:
-0002b8 e0b1                      					ldi xh, high(currentTone)
-0002b9 e2a9                      					ldi xl, low(currentTone)
-0002ba 910c                      					ld temp, x
+00033c e0b1                      					ldi xh, high(currentTone)
+00033d e2ab                      					ldi xl, low(currentTone)
+00033e 910c                      					ld temp, x
                                  
-0002bb 3f0c                      					cpi temp, tone0
-0002bc f011                      						breq acceptSound_case2 ; if tone is low make it high
-0002bd 940c 02c3                 						jmp acceptSound_case3 ; otherwise end signal
+00033f 3f0c                      					cpi temp, tone0
+000340 f011                      						breq acceptSound_case2 ; if tone is low make it high
+000341 940c 0347                 						jmp acceptSound_case3 ; otherwise end signal
                                  						acceptSound_case2:
-0002bf ef0e                      							ldi temp, tone1
-0002c0 9300 0129                 							sts currentTone, temp ; set high sound tone  
-0002c2 9508                      						ret
+000343 ef0e                      							ldi temp, tone1
+000344 9300 012b                 							sts currentTone, temp ; set high sound tone  
+000346 9508                      						ret
                                  						acceptSound_case3:
-0002c3 777f                      							cbr statesFlags0, sf_sound_enabled	; disable sound
-0002c4 7e7f                      							cbr statesFlags0, sf_accept_signal_enabled ; end accept signal
-0002c5 9508                      						ret
+000347 778f                      							cbr statesFlags0, sf_sound_enabled	; disable sound
+000348 7e8f                      							cbr statesFlags0, sf_accept_signal_enabled ; end accept signal
+000349 9508                      						ret
                                  
                                  		updateCancelSignal:
-0002c6 ff77                      			sbrs statesFlags0, sf_sound_enabled_n
-0002c7 940c 02cb                 				jmp cancelSound_case0 ; if sound is not enabled yet than enable it and set tone low
-0002c9 940c 02d0                 				jmp cancelSound_case1 ; otherwise if tone low then make it high. if tone high than end accept signal
+00034a ff87                      			sbrs statesFlags0, sf_sound_enabled_n
+00034b 940c 034f                 				jmp cancelSound_case0 ; if sound is not enabled yet than enable it and set tone low
+00034d 940c 0354                 				jmp cancelSound_case1 ; otherwise if tone low then make it high. if tone high than end accept signal
                                  
                                  				cancelSound_case0:
-0002cb ef0e                      					ldi temp, tone1			
-0002cc 9300 0129                 					sts currentTone, temp ; set high sound tone  
-0002ce 6870                      					sbr statesFlags0, sf_sound_enabled ; enable sound
-0002cf 9508                      				ret
+00034f ef0e                      					ldi temp, tone1			
+000350 9300 012b                 					sts currentTone, temp ; set high sound tone  
+000352 6880                      					sbr statesFlags0, sf_sound_enabled ; enable sound
+000353 9508                      				ret
                                  
                                  				cancelSound_case1:
-0002d0 e0b1                      					ldi xh, high(currentTone)
-0002d1 e2a9                      					ldi xl, low(currentTone)
-0002d2 910c                      					ld temp, x
+000354 e0b1                      					ldi xh, high(currentTone)
+000355 e2ab                      					ldi xl, low(currentTone)
+000356 910c                      					ld temp, x
                                  
-0002d3 3f0e                      					cpi temp, tone1
-0002d4 f011                      						breq cancelSound_case2 ; if tone high make it low
-0002d5 940c 02db                 						jmp cancelSound_case3 ; otherwise end signal
+000357 3f0e                      					cpi temp, tone1
+000358 f011                      						breq cancelSound_case2 ; if tone high make it low
+000359 940c 035f                 						jmp cancelSound_case3 ; otherwise end signal
                                  						cancelSound_case2:
-0002d7 ef0c                      							ldi temp, tone0
-0002d8 9300 0129                 							sts currentTone, temp ; set sound tone  
-0002da 9508                      						ret
+00035b ef0c                      							ldi temp, tone0
+00035c 9300 012b                 							sts currentTone, temp ; set sound tone  
+00035e 9508                      						ret
                                  						cancelSound_case3:
-0002db 777f                      							cbr statesFlags0, sf_sound_enabled	; disable sound
-0002dc 7f77                      							cbr statesFlags0, sf_cancel_signal_enabled ; end accept signal
-0002dd 9508                      						ret
+00035f 778f                      							cbr statesFlags0, sf_sound_enabled	; disable sound
+000360 7f87                      							cbr statesFlags0, sf_cancel_signal_enabled ; end accept signal
+000361 9508                      						ret
                                  
                                  
                                  
                                  	updateWaveState:
-0002de 775f                      		cbr eventsFlags0, ef_update_sound_wave_state
+000362 775f                      		cbr eventsFlags0, ef_update_sound_wave_state
                                  
-0002df e0b1                      		ldi xh, high(currentTone)
-0002e0 e2a9                      		ldi xl, low(currentTone)
-0002e1 910c                      		ld temp, x
+000363 e0b1                      		ldi xh, high(currentTone)
+000364 e2ab                      		ldi xl, low(currentTone)
+000365 910c                      		ld temp, x
                                  
-0002e2 bd04                      		out tcnt2, temp ; reset timer2 immediately to prevent bad sound
+000366 bd04                      		out tcnt2, temp ; reset timer2 immediately to prevent bad sound
                                  
-0002e3 ff77                      		sbrs statesFlags0, sf_sound_enabled_n ; if we should not prodice some sound
-0002e4 9518                      			reti ; do nothing
-0002e5 9b95                      			sbis portd, speaker_pin_number ; if this pin is low
-0002e6 940c 02ea                 				jmp speakerWaveUp ; then make it high
-0002e8 940c 02ec                 				jmp speakerWaveDown ; otherwise make it low
+000367 ff87                      		sbrs statesFlags0, sf_sound_enabled_n ; if we should not prodice some sound
+000368 9518                      			reti ; do nothing
+000369 9b95                      			sbis portd, speaker_pin_number ; if this pin is low
+00036a 940c 036e                 				jmp speakerWaveUp ; then make it high
+00036c 940c 0370                 				jmp speakerWaveDown ; otherwise make it low
                                  
                                  			speakerWaveUp:
-0002ea 9a95                      				sbi portd, speaker_pin_number ; make it high
-0002eb 9518                      				reti
+00036e 9a95                      				sbi portd, speaker_pin_number ; make it high
+00036f 9518                      				reti
                                  			speakerWaveDown:
-0002ec 9895                      				cbi portd, speaker_pin_number ; make it low
-0002ed 9518                      				reti
+000370 9895                      				cbi portd, speaker_pin_number ; make it low
+000371 9518                      				reti
                                  				; result sound wave 				____	  ____	    ____	  ____
                                  				; will be something like that:	___|	|____|	  |____|    |____|    |____
                                  
                                  
                                  	readInput:
-0002ee b709                      		in temp, eimsk ; disable external intrruption int0
-0002ef 7f0e                      		andi temp, 0b11111110
-0002f0 bf09                      		out eimsk, temp
+000372 b709                      		in temp, eimsk ; disable external intrruption int0
+000373 7f0e                      		andi temp, 0b11111110
+000374 bf09                      		out eimsk, temp
                                  
-0002f1 7d5f                      		cbr eventsFlags0, ef_handle_input
+000375 7d5f                      		cbr eventsFlags0, ef_handle_input
                                  		
-0002f2 e000                      		ldi temp, 0b00000000 ; check first row
-0002f3 bb0b                      		out porta, temp
-0002f4 b309                      		in temp, pina ; get pressed button
+000376 e000                      		ldi temp, 0b00000000 ; check first row
+000377 bb0b                      		out porta, temp
+000378 b309                      		in temp, pina ; get pressed button
                                  		
-0002f5 940e 0306                 		call checkInput
+000379 940e 038a                 		call checkInput
                                  
-0002f7 e008                      		ldi temp, 0b00001000 ; check 2nd row
-0002f8 bb0b                      		out porta, temp
-0002f9 b309                      		in temp, pina 
+00037b e008                      		ldi temp, 0b00001000 ; check 2nd row
+00037c bb0b                      		out porta, temp
+00037d b309                      		in temp, pina 
                                  
-0002fa 940e 0306                 		call checkInput
+00037e 940e 038a                 		call checkInput
                                  
-0002fc e100                      		ldi temp, 0b00010000 ; check third row
-0002fd bb0b                      		out porta, temp
-0002fe b309                      		in temp, pina 
+000380 e100                      		ldi temp, 0b00010000 ; check third row
+000381 bb0b                      		out porta, temp
+000382 b309                      		in temp, pina 
                                  
-0002ff 940e 0306                 		call checkInput
+000383 940e 038a                 		call checkInput
                                  
-000301 e108                      		ldi temp, 0b00011000 ; check the last row
-000302 bb0b                      		out porta, temp
-000303 b309                      		in temp, pina ; 
+000385 e108                      		ldi temp, 0b00011000 ; check the last row
+000386 bb0b                      		out porta, temp
+000387 b309                      		in temp, pina ; 
                                  
-000304 940c 030d                 		jmp endReadingInput
+000388 940c 0391                 		jmp endReadingInput
                                  
                                  		checkInput:
-000306 2f10                      			mov temp2, temp
-000307 7017                      			andi temp2, 0b00000111 ; check only three bits indicating pressed button
-000308 3010                      			cpi temp2, 0
-000309 f409                      			brne clearReturnAddr	
-00030a 9508                      		ret
+00038a 2f10                      			mov temp2, temp
+00038b 7017                      			andi temp2, 0b00000111 ; check only three bits indicating pressed button
+00038c 3010                      			cpi temp2, 0
+00038d f409                      			brne clearReturnAddr	
+00038e 9508                      		ret
                                  
                                  		clearReturnAddr:
-00030b 911f                      			pop temp2 ; removing returning addr from stack
-00030c 911f                      			pop temp2
+00038f 911f                      			pop temp2 ; removing returning addr from stack
+000390 911f                      			pop temp2
                                  		endReadingInput:
-00030d 9300 012a                 			sts currentKey, temp ; finally save pressed key
-00030f e800                      			ldi temp, 0b10000000 ; enable continuous keyboard checking
-000310 bb0b                      			out porta, temp 
+000391 9300 012c                 			sts currentKey, temp ; finally save pressed key
+000393 e800                      			ldi temp, 0b10000000 ; enable continuous keyboard checking
+000394 bb0b                      			out porta, temp 
                                  			
-000311 b709                      			in temp, eimsk
-000312 e011                      			ldi temp2, 0b00000001
-000313 2b01                      			or temp, temp2 ; enable external intrruption int0
-000314 bf09                      			out eimsk, temp
-000315 9508                      	ret
+000395 b709                      			in temp, eimsk
+000396 e011                      			ldi temp2, 0b00000001
+000397 2b01                      			or temp, temp2 ; enable external intrruption int0
+000398 bf09                      			out eimsk, temp
+000399 9508                      	ret
                                  
                                  	switchDisplayData:
-000316 7f6d                      		cbr eventsFlags1, ef_switch_display_data
+00039a 7f6d                      		cbr eventsFlags1, ef_switch_display_data
                                  
-000317 fd76                      		sbrc statesFlags0, sf_warning_signal_enabled_n
-000318 940c 031d                 			jmp checkDisplayErrorMessage
-00031a 7f7e                      			cbr statesFlags0, sf_display_error_message
-00031b 940c 0325                 			jmp normalDataSwitch
+00039b fd86                      		sbrc statesFlags0, sf_warning_signal_enabled_n
+00039c 940c 03a1                 			jmp checkDisplayErrorMessage
+00039e 7f8e                      			cbr statesFlags0, sf_display_error_message
+00039f 940c 03a9                 			jmp normalDataSwitch
                                  
                                  		checkDisplayErrorMessage:
-00031d ff70                      			sbrs statesFlags0, sf_display_error_message_n
-00031e 940c 0322                 				jmp switchThroughError
-000320 940c 0325                 				jmp normalDataSwitch			
+0003a1 ff80                      			sbrs statesFlags0, sf_display_error_message_n
+0003a2 940c 03a6                 				jmp switchThroughError
+0003a4 940c 03a9                 				jmp normalDataSwitch			
                                  
                                  		switchThroughError:
-000322 6071                      			sbr statesFlags0, sf_display_error_message
-000323 940c 0333                 			jmp endSwitchingDisplayData
+0003a6 6081                      			sbr statesFlags0, sf_display_error_message
+0003a7 940c 03b7                 			jmp endSwitchingDisplayData
                                  
                                  		normalDataSwitch:
-000325 7f7e                      			cbr statesFlags0, sf_display_error_message
-000326 e0b1                      		ldi xh, high(currentDisplayData) ; get "number" of type of data we wanna to be displayed
-000327 e1aa                      				ldi xl, low(currentDisplayData)
-000328 910c                      				ld temp, x
+0003a9 7f8e                      			cbr statesFlags0, sf_display_error_message
+0003aa e0b1                      		ldi xh, high(currentDisplayData) ; get "number" of type of data we wanna to be displayed
+0003ab e1aa                      				ldi xl, low(currentDisplayData)
+0003ac 910c                      				ld temp, x
                                  
-000329 3001                      				cpi temp, 1
-00032a f428                      					brsh goToFirstData
+0003ad 3001                      				cpi temp, 1
+0003ae f428                      					brsh goToFirstData
                                  					;else next data
-00032b 9503                      					inc temp
-00032c 9300 011a                 					sts currentDisplayData, temp
-00032e 940c 0333                 					jmp endSwitchingDisplayData
+0003af 9503                      					inc temp
+0003b0 9300 011a                 					sts currentDisplayData, temp
+0003b2 940c 03b7                 					jmp endSwitchingDisplayData
                                  
                                  					goToFirstData:
-000330 e000                      						ldi temp, 0
-000331 9300 011a                 						sts currentDisplayData, temp
+0003b4 e000                      						ldi temp, 0
+0003b5 9300 011a                 						sts currentDisplayData, temp
                                  		
                                  		endSwitchingDisplayData:
                                  
-000333 9508                      	ret
+0003b7 9508                      	ret
                                  
                                  	update7segScreen:
-000334 7e5f                      		cbr eventsFlags0, ef_update_7seg_screen
+0003b8 7e5f                      		cbr eventsFlags0, ef_update_7seg_screen
                                  
-000335 ef0f                      		ldi temp, 0xff 
-000336 ef10                      		ldi temp2, 0xf0
-000337 bd0d                      		out tcnt1h, temp
-000338 bd1c                      		out tcnt1l, temp2
+0003b9 ef0f                      		ldi temp, 0xff 
+0003ba ef10                      		ldi temp2, 0xf0
+0003bb bd0d                      		out tcnt1h, temp
+0003bc bd1c                      		out tcnt1l, temp2
                                  		
-000339 e0b1                      		ldi xh, high(curPos7Seg) ; get pereviously printed display indicator from ram
-00033a e1a9                      		ldi xl, low(curPos7Seg)
-00033b 912c                      		ld temp3, x
+0003bd e0b1                      		ldi xh, high(curPos7Seg) ; get pereviously printed display indicator from ram
+0003be e1a9                      		ldi xl, low(curPos7Seg)
+0003bf 912c                      		ld temp3, x
                                  
-00033c 9523                      		inc temp3
+0003c0 9523                      		inc temp3
                                  
-00033d 3028                      		cpi temp3, 8
-00033e f410                      			brsh jumpToFirst7seg
-00033f 940c 035c                 			jmp printGlyph
+0003c1 3028                      		cpi temp3, 8
+0003c2 f410                      			brsh jumpToFirst7seg
+0003c3 940c 03e0                 			jmp printGlyph
                                  
                                  		jumpToFirst7seg:
-000341 e020                      			ldi temp3, 0 ; select first indicator
-000342 940e 0372                 			call clear7SegScrBuffer
-000344 e0b1                      			ldi xh, high(currentDisplayData)
-000345 e1aa                      			ldi xl, low(currentDisplayData)
-000346 910c                      			ld temp, x
-000347 fd70                      			sbrc statesFlags0, sf_display_error_message_n
-000348 940c 035a                 				jmp selectErrorMessage
-00034a 3000                      			cpi temp, 0
-00034b f011                      				breq selectTemperaturesData ; TODO prevent failing compairing after SBR command in interruption handler
-00034c 3001                      			cpi temp, 1
-00034d f041                      				breq selectTachometerData
+0003c5 e020                      			ldi temp3, 0 ; select first indicator
+0003c6 940e 03f6                 			call clear7SegScrBuffer
+0003c8 e0b1                      			ldi xh, high(currentDisplayData)
+0003c9 e1aa                      			ldi xl, low(currentDisplayData)
+0003ca 910c                      			ld temp, x
+0003cb fd80                      			sbrc statesFlags0, sf_display_error_message_n
+0003cc 940c 03de                 				jmp selectErrorMessage
+0003ce 3000                      			cpi temp, 0
+0003cf f011                      				breq selectTemperaturesData ; TODO prevent failing compairing after SBR command in interruption handler
+0003d0 3001                      			cpi temp, 1
+0003d1 f041                      				breq selectTachometerData
                                  
                                  			selectTemperaturesData:
-00034e 940e 03be                 				call printEngineTemperature
-000350 940e 03a9                 				call printCurrentTemperature
-000352 940e 0399                 				call printTargetTemperature
-000354 940c 035c                 				jmp endJumpToFirstSegment
+0003d2 940e 0442                 				call printEngineTemperature
+0003d4 940e 042d                 				call printCurrentTemperature
+0003d6 940e 041d                 				call printTargetTemperature
+0003d8 940c 03e0                 				jmp endJumpToFirstSegment
                                  
                                  			selectTachometerData:
-000356 940e 0386                 				call printTachometerValue
-000358 940c 035c                 				jmp endJumpToFirstSegment
+0003da 940e 040a                 				call printTachometerValue
+0003dc 940c 03e0                 				jmp endJumpToFirstSegment
                                  
                                  			selectErrorMessage:
-00035a 940e 03d8                 				call printErrorMessage
+0003de 940e 045c                 				call printErrorMessage
                                  
                                  			endJumpToFirstSegment:
                                  
                                  
                                  		printGlyph:
-00035c 9320 0119                 			sts curPos7Seg, temp3
+0003e0 9320 0119                 			sts curPos7Seg, temp3
                                  
                                  			; get number of a glyph 
-00035e e0b1                      			ldi xh, high(SevenSegScrBuff)
-00035f e1a0                      			ldi xl, low(SevenSegScrBuff)
-000360 0fa2                      			add  xl, temp3
+0003e2 e0b1                      			ldi xh, high(SevenSegScrBuff)
+0003e3 e1a0                      			ldi xl, low(SevenSegScrBuff)
+0003e4 0fa2                      			add  xl, temp3
                                  
-000361 910c                      			ld temp, x
+0003e5 910c                      			ld temp, x
                                  
-000362 e0f0                      			ldi zh,0
-000363 eae0                      			ldi zl, charTable7seg * 2
+0003e6 e0f0                      			ldi zh,0
+0003e7 eae0                      			ldi zl, charTable7seg * 2
                                  
-000364 0fe0                      			add zl, temp
-000365 9104                      			lpm temp, z
+0003e8 0fe0                      			add zl, temp
+0003e9 9104                      			lpm temp, z
                                  
-000366 3021                      			cpi temp3, 1
-000367 f021                      				breq printDot
-000368 3024                      			cpi temp3, 4
-000369 f011                      				breq printDot
-00036a 940c 036d                 				jmp moveGlyphToscreen
+0003ea 3021                      			cpi temp3, 1
+0003eb f021                      				breq printDot
+0003ec 3024                      			cpi temp3, 4
+0003ed f011                      				breq printDot
+0003ee 940c 03f1                 				jmp moveGlyphToscreen
                                  			
                                  			printDot:
-00036c 7f0e                      				andi temp, 0b11111110
+0003f0 7f0e                      				andi temp, 0b11111110
                                  
                                  			moveGlyphToScreen:
-00036d 9522                      			swap temp3
-00036e 0f22                      			lsl temp3
-00036f bb28                      			out portb, temp3 ; select place on display
+0003f1 9522                      			swap temp3
+0003f2 0f22                      			lsl temp3
+0003f3 bb28                      			out portb, temp3 ; select place on display
                                  
-000370 bb05                      			out portc, temp ; print glyph
-000371 9508                      	ret
+0003f4 bb05                      			out portc, temp ; print glyph
+0003f5 9508                      	ret
                                  
                                  	clear7SegScrBuffer:
-000372 e0f0                      		ldi zh, 0
-000373 eae0                      		ldi zl, charTable7seg * 2
-000374 e103                      		ldi temp, chSpace ; load space glyph
+0003f6 e0f0                      		ldi zh, 0
+0003f7 eae0                      		ldi zl, charTable7seg * 2
+0003f8 e103                      		ldi temp, chSpace ; load space glyph
                                  		;add zl, temp
                                  		;lpm temp, z
                                  
-000375 9300 0110                 		sts SevenSegScrBuff + 0, temp ; clear unused display indicators
-000377 9300 0111                 		sts SevenSegScrBuff + 1, temp
-000379 9300 0112                 		sts SevenSegScrBuff + 2, temp
-00037b 9300 0113                 		sts SevenSegScrBuff + 3, temp
-00037d 9300 0114                 		sts SevenSegScrBuff + 4, temp
-00037f 9300 0115                 		sts SevenSegScrBuff + 5, temp
-000381 9300 0116                 		sts SevenSegScrBuff + 6, temp
-000383 9300 0117                 		sts SevenSegScrBuff + 7, temp
-000385 9508                      	ret
+0003f9 9300 0110                 		sts SevenSegScrBuff + 0, temp ; clear unused display indicators
+0003fb 9300 0111                 		sts SevenSegScrBuff + 1, temp
+0003fd 9300 0112                 		sts SevenSegScrBuff + 2, temp
+0003ff 9300 0113                 		sts SevenSegScrBuff + 3, temp
+000401 9300 0114                 		sts SevenSegScrBuff + 4, temp
+000403 9300 0115                 		sts SevenSegScrBuff + 5, temp
+000405 9300 0116                 		sts SevenSegScrBuff + 6, temp
+000407 9300 0117                 		sts SevenSegScrBuff + 7, temp
+000409 9508                      	ret
                                  
                                  	printTachometerValue:
-000386 e0b1                      		ldi xh, high(engineSpeed) ; get engineSpeed from ram
-000387 e2a7                      		ldi xl, low(engineSpeed)
-000388 910c                      		ld temp, x
+00040a e0b1                      		ldi xh, high(engineSpeed) ; get engineSpeed from ram
+00040b e2a9                      		ldi xl, low(engineSpeed)
+00040c 910c                      		ld temp, x
                                  	
-000389 940e 03e7                 		call convertBinToDec
-00038b 2f10                      		mov temp2, temp
-00038c 701f                      		andi temp2, 0b00001111 ; select low page
-00038d 9310 0112                 		sts SevenSegScrBuff + 2 , temp2 ; place the actual glyph number in a buffer
+00040d 940e 046b                 		call convertBinToDec
+00040f 2f10                      		mov temp2, temp
+000410 701f                      		andi temp2, 0b00001111 ; select low page
+000411 9310 0112                 		sts SevenSegScrBuff + 2 , temp2 ; place the actual glyph number in a buffer
                                  
-00038f 7f00                      		andi temp, 0b11110000 ; select high page
-000390 9502                      		swap temp
-000391 9300 0111                 		sts SevenSegScrBuff + 1, temp ; place the actual glyph nubmer in a buffer
+000413 7f00                      		andi temp, 0b11110000 ; select high page
+000414 9502                      		swap temp
+000415 9300 0111                 		sts SevenSegScrBuff + 1, temp ; place the actual glyph nubmer in a buffer
                                  
-000393 e000                      		ldi temp, ch0
-000394 9300 0113                 		sts SevenSegScrBuff + 3, temp
-000396 9300 0114                 		sts SevenSegScrBuff + 4, temp
-000398 9508                      	ret
+000417 e000                      		ldi temp, ch0
+000418 9300 0113                 		sts SevenSegScrBuff + 3, temp
+00041a 9300 0114                 		sts SevenSegScrBuff + 4, temp
+00041c 9508                      	ret
                                  
                                  	
                                  	printTargetTemperature:
-000399 ff72                      		sbrs statesFlags0, sf_conditioner_enabled_n ; if conditioner is not enabled then return emmidiately
-00039a 9508                      			ret
-00039b e0b1                      		ldi xh, high(targetTemperature) ; get temperature from ram
-00039c e1ad                      		ldi xl, low(targetTemperature)
-00039d 910c                      		ld temp, x
+00041d ff82                      		sbrs statesFlags0, sf_conditioner_enabled_n ; if conditioner is not enabled then return emmidiately
+00041e 9508                      			ret
+00041f e0b1                      		ldi xh, high(targetTemperature) ; get temperature from ram
+000420 e1ad                      		ldi xl, low(targetTemperature)
+000421 910c                      		ld temp, x
                                  	
-00039e 940e 03e7                 		call convertBinToDec
-0003a0 2f10                      		mov temp2, temp
-0003a1 701f                      		andi temp2, 0b00001111 ; select low page
-0003a2 9310 0114                 		sts SevenSegScrBuff + 4, temp2 ; place the actual glyph number in a buffer
+000422 940e 046b                 		call convertBinToDec
+000424 2f10                      		mov temp2, temp
+000425 701f                      		andi temp2, 0b00001111 ; select low page
+000426 9310 0114                 		sts SevenSegScrBuff + 4, temp2 ; place the actual glyph number in a buffer
                                  
-0003a4 7f00                      		andi temp, 0b11110000 ; select high page
-0003a5 9502                      		swap temp
-0003a6 9300 0113                 		sts SevenSegScrBuff + 3, temp ; place the actual glyph nubmer in a buffer
-0003a8 9508                      	ret
+000428 7f00                      		andi temp, 0b11110000 ; select high page
+000429 9502                      		swap temp
+00042a 9300 0113                 		sts SevenSegScrBuff + 3, temp ; place the actual glyph nubmer in a buffer
+00042c 9508                      	ret
                                  
                                  	printCurrentTemperature:
-0003a9 e0b1                      		ldi xh, high(analogValuesTable) ; get temperature from ram
-0003aa e0a0                      		ldi xl, low(analogValuesTable)
-0003ab 910c                      		ld temp, x
+00042d e0b1                      		ldi xh, high(analogValuesTable) ; get temperature from ram
+00042e e0a0                      		ldi xl, low(analogValuesTable)
+00042f 910c                      		ld temp, x
                                  
-0003ac 3800                      		cpi temp, 128 ; check right at the beggining if this number negative
-0003ad f420                      			brsh convertTemperature
+000430 3800                      		cpi temp, 128 ; check right at the beggining if this number negative
+000431 f420                      			brsh convertTemperature
                                  
                                  		negateTemperature:
-0003ae e111                      			ldi temp2,  chMinus ; "-" glyph number in a table
-0003af 9310 0115                 			sts SevenSegScrBuff + 5, temp2
-0003b1 9500                      			com temp
+000432 e111                      			ldi temp2,  chMinus ; "-" glyph number in a table
+000433 9310 0115                 			sts SevenSegScrBuff + 5, temp2
+000435 9500                      			com temp
                                  			
                                  		convertTemperature:
-0003b2 5800                      			subi temp, 128
-0003b3 940e 03e7                 			call convertBinToDec
+000436 5800                      			subi temp, 128
+000437 940e 046b                 			call convertBinToDec
                                  	
-0003b5 2f10                      			mov temp2, temp
-0003b6 701f                      			andi temp2, 0b00001111 ; select low page
-0003b7 9310 0117                 			sts SevenSegScrBuff + 7, temp2 ; place the actual glyph number in a buffer
+000439 2f10                      			mov temp2, temp
+00043a 701f                      			andi temp2, 0b00001111 ; select low page
+00043b 9310 0117                 			sts SevenSegScrBuff + 7, temp2 ; place the actual glyph number in a buffer
                                  
-0003b9 7f00                      			andi temp, 0b11110000 ; select high page
-0003ba 9502                      			swap temp
-0003bb 9300 0116                 			sts SevenSegScrBuff + 6, temp ; place the actual glyph nubmer in a buffer
-0003bd 9508                      	ret
+00043d 7f00                      			andi temp, 0b11110000 ; select high page
+00043e 9502                      			swap temp
+00043f 9300 0116                 			sts SevenSegScrBuff + 6, temp ; place the actual glyph nubmer in a buffer
+000441 9508                      	ret
                                  
                                  	printEngineTemperature:
-0003be e0b1                      		ldi xh, high(analogValuesTable) ; get temperature from ram
-0003bf e0a0                      		ldi xl, low(analogValuesTable)
-0003c0 e002                      		ldi temp, 2
-0003c1 0fa0                      		add xl, temp
-0003c2 910c                      		ld temp, x
+000442 e0b1                      		ldi xh, high(analogValuesTable) ; get temperature from ram
+000443 e0a0                      		ldi xl, low(analogValuesTable)
+000444 e002                      		ldi temp, 2
+000445 0fa0                      		add xl, temp
+000446 910c                      		ld temp, x
                                  		
-0003c3 3800                      		cpi temp, 128
-0003c4 f068                      		 brlo printEngineTempNegative
+000447 3800                      		cpi temp, 128
+000448 f068                      		 brlo printEngineTempNegative
                                  
-0003c5 5800                      		subi temp, 128
-0003c6 940e 03e7                 		call convertBinToDec
+000449 5800                      		subi temp, 128
+00044a 940e 046b                 		call convertBinToDec
                                  	
-0003c8 2f10                      		mov temp2, temp
-0003c9 701f                      		andi temp2, 0b00001111 ; select low page
-0003ca 9310 0111                 		sts SevenSegScrBuff + 1, temp2 ; place the actual glyph number in a buffer
+00044c 2f10                      		mov temp2, temp
+00044d 701f                      		andi temp2, 0b00001111 ; select low page
+00044e 9310 0111                 		sts SevenSegScrBuff + 1, temp2 ; place the actual glyph number in a buffer
                                  
-0003cc 7f00                      		andi temp, 0b11110000 ; select high page
-0003cd 9502                      		swap temp
-0003ce 9300 0110                 		sts SevenSegScrBuff, temp ; place the actual glyph nubmer in a buffer
-0003d0 940c 03d7                 		jmp endEngineTempPrinting
+000450 7f00                      		andi temp, 0b11110000 ; select high page
+000451 9502                      		swap temp
+000452 9300 0110                 		sts SevenSegScrBuff, temp ; place the actual glyph nubmer in a buffer
+000454 940c 045b                 		jmp endEngineTempPrinting
                                  
                                  		printEngineTempNegative:
-0003d2 e101                      			ldi temp, chMinus ; load "minus" gliph number
-0003d3 9300 0110                 			sts SevenSegScrBuff, temp
-0003d5 9300 0111                 			sts SevenSegScrBuff + 1, temp
+000456 e101                      			ldi temp, chMinus ; load "minus" gliph number
+000457 9300 0110                 			sts SevenSegScrBuff, temp
+000459 9300 0111                 			sts SevenSegScrBuff + 1, temp
                                  
                                  		endEngineTempPrinting:
-0003d7 9508                      	ret
+00045b 9508                      	ret
                                  
                                  	printErrorMessage:	
-0003d8 e00e                      		ldi temp, chE
-0003d9 9300 0110                 		sts SevenSegScrBuff, temp
-0003db e102                      		ldi temp, chR
-0003dc 9300 0111                 		sts SevenSegScrBuff + 1, temp
-0003de 9300 0112                 		sts SevenSegScrBuff + 2, temp
-0003e0 e000                      		ldi temp, ch0
-0003e1 9300 0113                 		sts sevenSegScrBuff + 3, temp
-0003e3 e102                      		ldi temp, chR
-0003e4 9300 0114                 		sts sevenSegScrBuff + 4, temp
-0003e6 9508                      	ret
+00045c e00e                      		ldi temp, chE
+00045d 9300 0110                 		sts SevenSegScrBuff, temp
+00045f e102                      		ldi temp, chR
+000460 9300 0111                 		sts SevenSegScrBuff + 1, temp
+000462 9300 0112                 		sts SevenSegScrBuff + 2, temp
+000464 e000                      		ldi temp, ch0
+000465 9300 0113                 		sts sevenSegScrBuff + 3, temp
+000467 e102                      		ldi temp, chR
+000468 9300 0114                 		sts sevenSegScrBuff + 4, temp
+00046a 9508                      	ret
                                  
                                  	convertBinToDec:
-0003e7 3604                      		cpi temp, 100 ; check right at the beggining if this number is to big to display it on the screen
-0003e8 f5d8                      		brsh btdMax
-0003e9 e010                      		ldi temp2, 0 ; yeeeeeee no looooopsss ahahahhachchahhhacha
-0003ea 300a                      			cpi temp, 10
-0003eb f414                      			brge increaseTens0
-0003ec 940c 042a                 				jmp setLowPage
+00046b 3604                      		cpi temp, 100 ; check right at the beggining if this number is to big to display it on the screen
+00046c f5d8                      		brsh btdMax
+00046d e010                      		ldi temp2, 0 ; yeeeeeee no looooopsss ahahahhachchahhhacha
+00046e 300a                      			cpi temp, 10
+00046f f414                      			brge increaseTens0
+000470 940c 04ae                 				jmp setLowPage
                                  		increaseTens0:
-0003ee 500a                      			subi temp, 10
-0003ef 9513                      			inc temp2
-0003f0 300a                      			cpi temp, 10
-0003f1 f414                      			brge increaseTens1
-0003f2 940c 042a                 				jmp setLowPage
+000472 500a                      			subi temp, 10
+000473 9513                      			inc temp2
+000474 300a                      			cpi temp, 10
+000475 f414                      			brge increaseTens1
+000476 940c 04ae                 				jmp setLowPage
                                  		increaseTens1:
-0003f4 500a                      			subi temp, 10
-0003f5 9513                      			inc temp2
-0003f6 300a                      			cpi temp, 10
-0003f7 f414                      			brge increaseTens2
-0003f8 940c 042a                 				jmp setLowPage
+000478 500a                      			subi temp, 10
+000479 9513                      			inc temp2
+00047a 300a                      			cpi temp, 10
+00047b f414                      			brge increaseTens2
+00047c 940c 04ae                 				jmp setLowPage
                                  		increaseTens2:
-0003fa 500a                      			subi temp, 10
-0003fb 9513                      			inc temp2
-0003fc 300a                      			cpi temp, 10
-0003fd f414                      			brge increaseTens3
-0003fe 940c 042a                 				jmp setLowPage
+00047e 500a                      			subi temp, 10
+00047f 9513                      			inc temp2
+000480 300a                      			cpi temp, 10
+000481 f414                      			brge increaseTens3
+000482 940c 04ae                 				jmp setLowPage
                                  		increaseTens3:
-000400 500a                      			subi temp, 10
-000401 9513                      			inc temp2
-000402 300a                      			cpi temp, 10
-000403 f414                      			brge increaseTens4
-000404 940c 042a                 				jmp setLowPage
+000484 500a                      			subi temp, 10
+000485 9513                      			inc temp2
+000486 300a                      			cpi temp, 10
+000487 f414                      			brge increaseTens4
+000488 940c 04ae                 				jmp setLowPage
                                  		increaseTens4:
-000406 500a                      			subi temp, 10
-000407 9513                      			inc temp2
-000408 300a                      			cpi temp, 10
-000409 f414                      			brge increaseTens5
-00040a 940c 042a                 				jmp setLowPage
+00048a 500a                      			subi temp, 10
+00048b 9513                      			inc temp2
+00048c 300a                      			cpi temp, 10
+00048d f414                      			brge increaseTens5
+00048e 940c 04ae                 				jmp setLowPage
                                  		increaseTens5:
-00040c 500a                      			subi temp, 10
-00040d 9513                      			inc temp2
-00040e 300a                      			cpi temp, 10
-00040f f414                      			brge increaseTens6
-000410 940c 042a                 				jmp setLowPage
+000490 500a                      			subi temp, 10
+000491 9513                      			inc temp2
+000492 300a                      			cpi temp, 10
+000493 f414                      			brge increaseTens6
+000494 940c 04ae                 				jmp setLowPage
                                  		increaseTens6:
-000412 500a                      			subi temp, 10
-000413 9513                      			inc temp2
-000414 300a                      			cpi temp, 10
-000415 f414                      			brge increaseTens7
-000416 940c 042a                 				jmp setLowPage
+000496 500a                      			subi temp, 10
+000497 9513                      			inc temp2
+000498 300a                      			cpi temp, 10
+000499 f414                      			brge increaseTens7
+00049a 940c 04ae                 				jmp setLowPage
                                  		increaseTens7:
-000418 500a                      			subi temp, 10
-000419 9513                      			inc temp2
-00041a 300a                      			cpi temp, 10
-00041b f414                      			brge increaseTens8
-00041c 940c 042a                 				jmp setLowPage
+00049c 500a                      			subi temp, 10
+00049d 9513                      			inc temp2
+00049e 300a                      			cpi temp, 10
+00049f f414                      			brge increaseTens8
+0004a0 940c 04ae                 				jmp setLowPage
                                  		increaseTens8:
-00041e 500a                      			subi temp, 10
-00041f 9513                      			inc temp2
-000420 301a                      			cpi temp2, 10
-000421 f414                      				brge btdMax
-000422 940c 042a                 				jmp setLowPage
+0004a2 500a                      			subi temp, 10
+0004a3 9513                      			inc temp2
+0004a4 301a                      			cpi temp2, 10
+0004a5 f414                      				brge btdMax
+0004a6 940c 04ae                 				jmp setLowPage
                                  		btdMax:
-000424 e019                      			ldi temp2, 9
-000425 2f01                      			mov temp, temp2
-000426 9502                      			swap temp
-000427 0f01                      			add temp, temp2
+0004a8 e019                      			ldi temp2, 9
+0004a9 2f01                      			mov temp, temp2
+0004aa 9502                      			swap temp
+0004ab 0f01                      			add temp, temp2
                                  			
-000428 940c 042d                 			jmp endBTDConv
+0004ac 940c 04b1                 			jmp endBTDConv
                                  
                                  		setLowPage:
-00042a 9502                      			swap temp ; move low number to high page
-00042b 0f01                      			add temp, temp2 ; save hig number to low page
-00042c 9502                      			swap temp
+0004ae 9502                      			swap temp ; move low number to high page
+0004af 0f01                      			add temp, temp2 ; save hig number to low page
+0004b0 9502                      			swap temp
                                  
                                  		endBTDConv:	
-00042d 9508                      	ret
+0004b1 9508                      	ret
                                  
                                  
                                  	readAnalogSensors:
-00042e 7f57                      		cbr eventsFlags0, ef_read_analog_sensors
+0004b2 7f57                      		cbr eventsFlags0, ef_read_analog_sensors
                                  
-00042f e0b1                      		ldi xh, high(currentSensorNum) ; get the nubmer of thermal sensor we wanna read from
-000430 e1a8                      		ldi xl, low(currentSensorNum)
-000431 911c                      		ld temp2, x
+0004b3 e0b1                      		ldi xh, high(currentSensorNum) ; get the nubmer of thermal sensor we wanna read from
+0004b4 e1a8                      		ldi xl, low(currentSensorNum)
+0004b5 911c                      		ld temp2, x
                                  
-000432 e0f1                      		ldi zh, high(analogValuesTable) ; seting up addres of the beginning of temperatuers table
-000433 e0e0                      		ldi zl, low(analogValuesTable)
+0004b6 e0f1                      		ldi zh, high(analogValuesTable) ; seting up addres of the beginning of temperatuers table
+0004b7 e0e0                      		ldi zl, low(analogValuesTable)
                                  
-000434 0fe1                      		add zl, temp2 ; apply offset to store data to correct place in a table
+0004b8 0fe1                      		add zl, temp2 ; apply offset to store data to correct place in a table
                                  
-000435 b104                      		in temp, adcl
-000436 b105                      		in temp, adch
-000437 8300                      		st z, temp ; and finally store it
+0004b9 b104                      		in temp, adcl
+0004ba b105                      		in temp, adch
+0004bb 8300                      		st z, temp ; and finally store it
                                  
-000438 9513                      		inc temp2 ; select next sensor value to be readen in the next iterration
+0004bc 9513                      		inc temp2 ; select next sensor value to be readen in the next iterration
                                  
                                  		
-000439 3110                      		cpi temp2, 16 ; if next sensor is "non existing" 17th sensor then return to first one
-00043a f414                      			brge jumpToFirstSensor
-00043b 940c 043e                 			jmp saveNextSensorNumber ; else just save the next sensor nubmer
+0004bd 3110                      		cpi temp2, 16 ; if next sensor is "non existing" 17th sensor then return to first one
+0004be f414                      			brge jumpToFirstSensor
+0004bf 940c 04c2                 			jmp saveNextSensorNumber ; else just save the next sensor nubmer
                                  
                                  		jumpToFirstSensor:
-00043d e010                      			ldi temp2, 0
+0004c1 e010                      			ldi temp2, 0
                                  
                                  		saveNextSensorNumber:
-00043e 9310 0118                 			sts currentSensorNum, temp2
-000440 0f11                      			lsl temp2
-000441 b100                      			in temp, pinf ; get content of portf
-000442 7e01                      			andi temp, 0b11100001 ; clear 4 bits to rewrite them later
-000443 2b10                      			or temp2, temp
-000444 9310 0062                 			sts portf, temp2
+0004c2 9310 0118                 			sts currentSensorNum, temp2
+0004c4 0f11                      			lsl temp2
+0004c5 b100                      			in temp, pinf ; get content of portf
+0004c6 7e01                      			andi temp, 0b11100001 ; clear 4 bits to rewrite them later
+0004c7 2b10                      			or temp2, temp
+0004c8 9310 0062                 			sts portf, temp2
                                  
-000446 e600                      		ldi temp, 0b01100000 ; and restart adc after all
-000447 b907                      		out admux, temp
-000448 ed0e                      		ldi temp, 0b11011110
-000449 b906                      		out adcsra, temp
-00044a 9508                      	ret
+0004ca e600                      		ldi temp, 0b01100000 ; and restart adc after all
+0004cb b907                      		out admux, temp
+0004cc ed0e                      		ldi temp, 0b11011110
+0004cd b906                      		out adcsra, temp
+0004ce 9508                      	ret
                                  
                                  	updateTachometer:
-00044b 7f67                      		cbr eventsFlags1, ef_update_tachometer
+0004cf 7f67                      		cbr eventsFlags1, ef_update_tachometer
                                  		
-00044c e0b1                      		ldi xh, high(tachometerCounter) ; get value counted by tachometer counter durring 0.1 sec
-00044d e2a6                      		ldi xl, low(tachometerCounter)
-00044e 910c                      		ld temp, x
+0004d0 e0b1                      		ldi xh, high(tachometerCounter) ; get value counted by tachometer counter durring 0.1 sec
+0004d1 e2a8                      		ldi xl, low(tachometerCounter)
+0004d2 910c                      		ld temp, x
                                  		;inc temp ; some kind of trikky compensation
                                  
-00044f e016                      		ldi temp2, 6
-000450 9f01                      		mul temp, temp2 ; because it is 6*10 seconds in one minute
-000451 2d00                      		mov temp, r0 ; get product low (numbers will not be to big)
+0004d3 e016                      		ldi temp2, 6
+0004d4 9f01                      		mul temp, temp2 ; because it is 6*10 seconds in one minute
+0004d5 2d00                      		mov temp, r0 ; get product low (numbers will not be to big)
                                  
                                  		
                                  
-000452 3600                      		cpi temp, 96
-000453 f410                      			brsh tachometerMax
-000454 940c 0457                 			jmp saveEngineSpeed
+0004d6 3600                      		cpi temp, 96
+0004d7 f410                      			brsh tachometerMax
+0004d8 940c 04db                 			jmp saveEngineSpeed
                                  
                                  		tachometerMax:
-000456 e603                      			ldi temp, 99
+0004da e603                      			ldi temp, 99
                                  		saveEngineSpeed:
-000457 9300 0127                 			sts engineSpeed, temp
-000459 e000                      			ldi temp, 0
-00045a 9300 0126                 			sts tachometerCounter, temp
-00045c 9508                      	ret
+0004db 9300 0129                 			sts engineSpeed, temp
+0004dd e000                      			ldi temp, 0
+0004de 9300 0128                 			sts tachometerCounter, temp
+0004e0 9508                      	ret
                                  
                                  	incrementTachometerCounter:
-00045d 7e6f                      		cbr eventsFlags1, ef_increment_tachometer
+0004e1 7e6f                      		cbr eventsFlags1, ef_increment_tachometer
                                  
-00045e b709                      		in temp, eimsk ; disable external intrruption int1
-00045f 7f0d                      		andi temp, 0b11111101
-000460 bf09                      		out eimsk, temp
+0004e2 b709                      		in temp, eimsk ; disable external intrruption int1
+0004e3 7f0d                      		andi temp, 0b11111101
+0004e4 bf09                      		out eimsk, temp
                                  
-000461 e0b1                      		ldi xh, high(tachometerCounter)
-000462 e2a6                      		ldi xl, low(tachometerCounter)
-000463 910c                      		ld temp, x
+0004e5 e0b1                      		ldi xh, high(tachometerCounter)
+0004e6 e2a8                      		ldi xl, low(tachometerCounter)
+0004e7 910c                      		ld temp, x
                                  		
-000464 3f0f                      		cpi temp, 255
-000465 f029                      			breq endIncTachCounter
-000466 940c 0468                 			jmp incTachCounter
+0004e8 3f0f                      		cpi temp, 255
+0004e9 f029                      			breq endIncTachCounter
+0004ea 940c 04ec                 			jmp incTachCounter
                                  
                                  		incTachCounter:
-000468 9503                      			inc temp
-000469 9300 0126                 			sts tachometerCounter, temp
+0004ec 9503                      			inc temp
+0004ed 9300 0128                 			sts tachometerCounter, temp
                                  		
                                  		endIncTachCounter:
-00046b b709                      			in temp, eimsk
-00046c e012                      			ldi temp2, 0b00000010
-00046d 2b01                      			or temp, temp2 ; enable external intrruption int1
-00046e bf09                      			out eimsk, temp
-00046f 9508                      	ret
+0004ef b709                      			in temp, eimsk
+0004f0 e012                      			ldi temp2, 0b00000010
+0004f1 2b01                      			or temp, temp2 ; enable external intrruption int1
+0004f2 bf09                      			out eimsk, temp
+0004f3 9508                      	ret
                                  	
                                  
                                  	////////////INTERRUPTIONS HANDLERS/////////////
                                  	extInt0Handler:
-000470 6250                      		sbr eventsFlags0, ef_handle_input
-000471 9518                      	reti
+0004f4 b74f                      		in tempInter, sreg
+0004f5 6250                      		sbr eventsFlags0, ef_handle_input
+0004f6 bf4f                      		out sreg, tempInter
+0004f7 9518                      	reti
                                  
                                  	extInt1Handler:
-000472 6160                      		sbr eventsFlags1, ef_increment_tachometer
-000473 9518                      	reti
+0004f8 b74f                      		in tempInter, sreg
+0004f9 6160                      		sbr eventsFlags1, ef_increment_tachometer
+0004fa bf4f                      		out sreg, tempInter
+0004fb 9518                      	reti
                                  
                                  	timer0OvfHandler:
-000474 6450                      		sbr eventsFlags0, ef_update_sound_type
-000475 9518                      	reti
+0004fc b74f                      		in tempInter, sreg
+0004fd 6450                      		sbr eventsFlags0, ef_update_sound_type
+0004fe bf4f                      		out sreg, tempInter
+0004ff 9518                      	reti
                                  
                                  	timer1OvfHandler:
-000476 6150                      		sbr eventsFlags0, ef_update_7seg_screen
-000477 9518                      	reti
+000500 b74f                      		in tempInter, sreg
+000501 6150                      		sbr eventsFlags0, ef_update_7seg_screen
+000502 bf4f                      		out sreg, tempInter
+000503 9518                      	reti
                                  
                                  	timer2OvfHandler: 
-000478 6850                      		sbr eventsFlags0, ef_update_sound_wave_state
-000479 9518                      	reti
+000504 b74f                      		in tempInter, sreg
+000505 6850                      		sbr eventsFlags0, ef_update_sound_wave_state
+000506 bf4f                      		out sreg, tempInter
+000507 9518                      	reti
                                  
                                  	timer3OvfHandler:
-00047a 6460                      		sbr eventsFlags1, ef_update_program_timers
-00047b 9518                      	reti
+000508 b74f                      		in tempInter, sreg
+000509 6460                      		sbr eventsFlags1, ef_update_program_timers
+00050a bf4f                      		out sreg, tempInter
+00050b 9518                      	reti
                                  
                                  	adcConvertionHandler:	
-00047c 6058                      		sbr eventsFlags0, ef_read_analog_sensors
-00047d 9518                      	reti
-                                 
+00050c b74f                      		in tempInter, sreg
+00050d 6058                      		sbr eventsFlags0, ef_read_analog_sensors
+00050e bf4f                      		out sreg, tempInter
 
 
 RESOURCE USE INFORMATION
@@ -2847,41 +3056,41 @@ counted separately from r26..r31 here.
 .dseg memory usage only counts static data declared with .byte
 
 "ATmega128" register use summary:
-x  :  38 y  :   0 z  :   3 r0 :   1 r1 :   0 r2 :   0 r3 :   0 r4 :   0 
+x  :  45 y  :   0 z  :   3 r0 :   1 r1 :   0 r2 :   0 r3 :   0 r4 :   0 
 r5 :   0 r6 :   0 r7 :   0 r8 :   0 r9 :   0 r10:   0 r11:   0 r12:   0 
-r13:   0 r14:   0 r15:   0 r16: 324 r17:  82 r18:  21 r19:   9 r20:   0 
-r21:  25 r22:  24 r23:  44 r24:   0 r25:   0 r26:  46 r27:  38 r28:   0 
+r13:   0 r14:   0 r15:   0 r16: 349 r17:  85 r18:  24 r19:  14 r20:  14 
+r21:  25 r22:  24 r23:   6 r24:  47 r25:   0 r26:  57 r27:  45 r28:   0 
 r29:   0 r30:   6 r31:   4 
-Registers used: 14 out of 35 (40.0%)
+Registers used: 16 out of 35 (45.7%)
 
 "ATmega128" instruction use summary:
-.lds  :   0 .sts  :   0 adc   :   0 add   :  12 adiw  :   0 and   :   0 
+.lds  :   0 .sts  :   0 adc   :   0 add   :  16 adiw  :   0 and   :   0 
 andi  :  17 asr   :   0 bclr  :   0 bld   :   0 brbc  :   0 brbs  :   0 
-brcc  :   0 brcs  :   0 break :   0 breq  :  22 brge  :  12 brhc  :   0 
-brhs  :   0 brid  :   0 brie  :   0 brlo  :   8 brlt  :   0 brmi  :   0 
-brne  :   1 brpl  :   0 brsh  :  10 brtc  :   0 brts  :   0 brvc  :   0 
-brvs  :   0 bset  :   0 bst   :   0 call  :  41 cbi   :   7 cbr   :  27 
+brcc  :   0 brcs  :   0 break :   0 breq  :  24 brge  :  12 brhc  :   0 
+brhs  :   0 brid  :   0 brie  :   0 brlo  :  12 brlt  :   0 brmi  :   0 
+brne  :   1 brpl  :   0 brsh  :  15 brtc  :   0 brts  :   0 brvc  :   0 
+brvs  :   0 bset  :   0 bst   :   0 call  :  56 cbi   :   7 cbr   :  34 
 clc   :   0 clh   :   0 cli   :   0 cln   :   0 clr   :   0 cls   :   0 
 clt   :   0 clv   :   0 clz   :   0 com   :   1 cp    :   3 cpc   :   0 
-cpi   :  50 cpse  :   0 dec   :   1 elpm  :   0 eor   :   0 fmul  :   0 
-fmuls :   0 fmulsu:   0 icall :   0 ijmp  :   0 in    :  15 inc   :  25 
-jmp   :  95 ld    :  39 ldd   :   0 ldi   : 172 lds   :   0 lpm   :   2 
+cpi   :  61 cpse  :   0 dec   :   1 elpm  :   0 eor   :   0 fmul  :   0 
+fmuls :   0 fmulsu:   0 icall :   0 ijmp  :   0 in    :  22 inc   :  28 
+jmp   : 105 ld    :  46 ldd   :   0 ldi   : 193 lds   :   0 lpm   :   2 
 lsl   :   4 lsr   :   1 mov   :   8 movw  :   0 mul   :   1 muls  :   0 
-mulsu :   0 neg   :   0 nop   :   0 or    :   8 ori   :   0 out   :  42 
-pop   :   2 push  :   0 rcall :   0 ret   :  50 reti  :  10 rjmp  :   0 
-rol   :   0 ror   :   0 sbc   :   0 sbci  :   0 sbi   :   8 sbic  :   6 
-sbis  :   1 sbiw  :   0 sbr   :  29 sbrc  :  23 sbrs  :  14 sec   :   0 
+mulsu :   0 neg   :   0 nop   :   0 or    :   8 ori   :   0 out   :  49 
+pop   :   2 push  :   0 rcall :   0 ret   :  53 reti  :  10 rjmp  :   0 
+rol   :   0 ror   :   0 sbc   :   0 sbci  :   0 sbi   :  13 sbic  :   6 
+sbis  :   1 sbiw  :   0 sbr   :  29 sbrc  :  25 sbrs  :  14 sec   :   0 
 seh   :   0 sei   :   1 sen   :   0 ser   :   0 ses   :   0 set   :   0 
 sev   :   0 sez   :   0 sleep :   0 spm   :   0 st    :   1 std   :   0 
-sts   :  74 sub   :   0 subi  :  12 swap  :  10 tst   :   0 wdr   :   0 
+sts   :  78 sub   :   0 subi  :  12 swap  :  10 tst   :   0 wdr   :   0 
 
 Instructions used: 40 out of 114 (35.1%)
 
 "ATmega128" memory use summary [bytes]:
 Segment   Begin    End      Code   Data   Used    Size   Use%
 ---------------------------------------------------------------
-[.cseg] 0x000000 0x0008fc   2148     24   2172  131072   1.7%
-[.dseg] 0x000100 0x00012c      0     44     44    4096   1.1%
+[.cseg] 0x000000 0x000a20   2440     24   2464  131072   1.9%
+[.dseg] 0x000100 0x00012f      0     47     47    4096   1.1%
 [.eseg] 0x000000 0x000000      0      0      0    4096   0.0%
 
 Assembly complete, 0 errors, 0 warnings

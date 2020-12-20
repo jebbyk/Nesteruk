@@ -7,7 +7,8 @@
 .def tempInter = r20
 .def eventsFlags0 = r21
 .def eventsFlags1 = r22
-.def statesFlags0 = r23
+.def eventsFlags2 = r23
+.def statesFlags0 = r24
 
 .equ speaker_pin_number = 5
 .equ speaker_pin_position = 0b00000100 ; speaker will be connected on 5th pin of portD
@@ -26,6 +27,15 @@
 .equ cooler_pin_number = 1
 .equ cooler_pin_position = 0b000000010
 
+.equ frontAirbagsTriggerPinNumber = 4
+.equ frontAirbagsTriggerPinPosition = 0b00010000
+.equ sideAirbagsTriggerPinNumber = 3
+.equ sideAirbagsTriggerPinPosition =  0b00001000
+.equ maxAllowedSideAcceleration = 40
+.equ maxAllowedForwardAcceleration = 100
+.equ maxAllowedBackwardAcceleration = 70
+.equ accelerationCheckingFreq = 128 + 64 + 32 + 16 + 8 + 4 + 2
+
 .equ insideThermalSensorNum = 0
 .equ outsideThermalSensorNum = 1
 .equ engineThermalSensorNum = 2
@@ -38,10 +48,10 @@
 .equ seat1FlapControl = 9
 .equ seat2FlapControl = 10
 .equ seat3FlapControl = 11
-.equ insideHumiditySensorNum = 12
-.equ outsideHumiditySensorNum = 13
-.equ hyroscopeZsensor = 14
-.equ hyroscopeXsensor = 15
+.equ accelerationFrontSensorZ = 12
+.equ accelerationFrontSensorX = 13
+.equ accelerationRearSensorX = 14
+.equ lolkekcheburek = 15
 
 .equ tccr0_setup_byte = 0b00000101 ; select speed for timer0
 .equ assr_setup_byte =  0b00001000 ; select async oscilator (slower speed and independent from main clock)
@@ -77,6 +87,8 @@
  	.equ tone1 = 0 + 128 + 64 + 32 + 16 + 8 + 4 + 2
 
 .equ displayDataSwitchingFreq = 128 + 64 + 32 ; bigger number - faster switching
+
+.equ checkOutsideTemperatureFreq = 128 + 64 + 32 + 16 
 
 .equ condFanSpeed = 249; higher number - higher speed
 	
@@ -127,14 +139,20 @@
 	.equ ef_update_flaps_n =			5
 	.equ ef_increment_tachometer =		0b00010000
 	.equ ef_increment_tachometer_n =	4
-	.equ ef_update_tachometer =			0b000001000
+	.equ ef_update_tachometer =			0b00001000
 	.equ ef_update_tachometer_n =		3
-	.equ ef_check_engine_temperature =	0b000000100
+	.equ ef_check_engine_temperature =	0b00000100
 	.equ ef_check_engine_temperature_n = 2
-	.equ ef_switch_display_data =		0b000000010
+	.equ ef_switch_display_data =		0b00000010
 	.equ ef_switch_display_data_n =		1
-	.equ ef_handle_current_key =		0b000000001
+	.equ ef_handle_current_key =		0b00000001
 	.equ ef_handle_current_key_n =		0
+
+	; events falgs 2
+	.equ ef_check_outside_temperature =		0b10000000
+	.equ ef_check_outside_temperature_n =   7
+	.equ ef_check_acceleration =			0b01000000
+	.equ ef_check_acceleration_n =			6
 
 
 //addreses in eeprom where usefull data will be saved
@@ -172,6 +190,10 @@
 		.byte 1
 	conditionerFanState:
 		.byte 1 ; reserve 1 byte to know fan "rotation" (not quite but who cares)
+	checkOutsideTemperatureTimerH:
+		.byte 1
+	checkOutsideTemperatureTimerL:
+		.byte 1
 
 	tachometerTimerH:
 		.byte 1
@@ -191,6 +213,9 @@
 		.byte 1 ; there will be storred a number of the last pressed key
 	handleCurrentKeyTimer:
 		.byte 1
+
+	checkAccelerationTimer:
+		.byte 1 
 
 .cseg
 	.org 0
@@ -341,7 +366,92 @@
 			call switchDisplayData
 		sbrc eventsFlags1, ef_handle_current_key_n
 			call handleCurrentKey
+
+		sbrc eventsFlags2, ef_check_outside_temperature_n
+			call checkOutsideTemperature
+		sbrc eventsFlags2, ef_check_acceleration_n
+			call checkAcceleration
+
  	jmp backgroundProcess
+
+	checkAcceleration:
+		cbr eventsFlags2, ef_check_acceleration
+
+		ldi xh, high(analogValuesTable)
+		ldi xl, low(analogValuesTable)
+		ldi temp, accelerationFrontSensorZ
+		add xl, temp
+		ld temp2, x
+
+		cpi temp2, 128 - maxAllowedBackwardAcceleration
+			brlo frontCollision
+		
+		checkRearCollision:
+			cpi temp2, 128 + maxAllowedForwardAcceleration
+				brsh rearCollision
+
+		
+
+		checkFrontLeftCollision:
+		ldi xh, high(analogValuesTable)
+		ldi xl, low(analogValuesTable)
+		ldi temp, accelerationFrontSensorX
+		add xl, temp
+		ld temp3, x
+
+		
+		cpi temp3, 128 + maxAllowedSideAcceleration
+			brsh frontLeftCollision
+		
+		checkFrontRightCollision:
+			cpi temp3, 128 - maxAllowedSideAcceleration
+				brlo frontRightCollision
+
+		checkBackLeftCollision:
+		ldi xh, high(analogValuesTable)
+		ldi xl, low(analogValuesTable)
+		ldi temp, accelerationRearSensorX
+		add xl, temp
+		ld temp4, x
+
+		cpi temp4, 128 + maxAllowedSideAcceleration
+			brsh backLeftCollision
+
+		checkBackRightCollision:
+			cpi temp4, 128 - maxAllowedSideAcceleration
+				brlo backRightCollision
+				jmp endCheckCollision
+
+		frontCollision:
+			call enableWarningSignal
+			jmp checkRearCollision
+
+		rearCollision:
+			sbi portd, frontAirbagsTriggerPinNumber
+			call enableWarningSignal
+			jmp checkFrontLeftCollision
+
+		frontLeftCollision:
+			sbi portd, sideAirbagsTriggerPinNumber
+			call enableWarningSignal
+			jmp checkFrontRightCollision
+
+		frontRightCollision:
+			sbi portd, sideAirbagsTriggerPinNumber
+			call enableWarningSignal
+			jmp checkBackLeftCollision
+
+		backLeftCollision:
+			sbi portd, sideAirbagsTriggerPinNumber
+			call enableWarningSignal
+			jmp checkBackRightCollision
+
+		backRightCollision:
+			sbi portd, sideAirbagsTriggerPinNumber
+			call enableWarningSignal
+
+		endCheckCollision:
+	ret
 
 	handleCurrentKey:
 		cbr eventsFlags1, ef_handle_current_key
@@ -392,7 +502,16 @@
 
 	ret
 
+	resetSoundState:
+		cbr statesFlags0, sf_click_signal_enabled
+		cbr statesFlags0, sf_accept_signal_enabled
+		cbr statesFlags0, sf_cancel_signal_enabled
+		cbr statesFlags0, sf_warning_signal_enabled
+		cbr statesFlags0, sf_sound_enabled
+	ret
+
 	enableWarningSignal:
+		call resetSoundState
 		sbr statesFlags0, sf_warning_signal_enabled
 	ret
 
@@ -401,14 +520,17 @@
 	ret
 
 	enableClickSignal:
+		call resetSoundState
 		sbr statesFlags0, sf_click_signal_enabled
 	ret
 
 	enableAcceptSignal:
+		call resetSoundState
 		sbr statesFlags0, sf_accept_signal_enabled
 	ret
 
 	enableCancelSignal:
+		call resetSoundState
 		sbr statesFlags0, sf_cancel_signal_enabled
 	ret
 
@@ -589,7 +711,7 @@
 
 		endCheckEngineTemperatureTimerUpdate:
 
-
+		//////// handle the last pressed key timer //////////
 		ldi xh, high(handleCurrentKeyTimer)
 		ldi xl, low(handleCurrentKeyTimer)
 		ld temp, x
@@ -606,6 +728,60 @@
 			sts handleCurrentKeyTimer, temp
 
 		endHandleCrrentKeyTimerUpdate:
+
+
+		////////// outside temp checking timer//////////
+		ldi xh, high(checkOutsideTemperatureTimerL) ; get timer from ram
+		ldi xl, low(checkOutsideTemperatureTimerL)
+		ld temp, x
+		inc temp
+		cpi temp, 255 ; emulate ovf interruption lol kek ahhahaha :-)))))))
+			breq incCheckOutsideTemperatureTimerH
+			sts checkOutsideTemperatureTimerL, temp
+			jmp endCheckOutsideTemperatreTimerUpdate
+
+		incCheckOutsideTemperatureTimerH:
+			ldi temp, 0
+			sts checkOutsideTemperatureTimerL, temp
+
+			ldi xh, high(CheckOutsideTemperatureTimerH)
+			ldi xl, low(CheckOutsideTemperatureTimerH)
+			ld temp, x
+			inc temp
+			cpi temp, 255
+				breq setCheckOutsideTemperatreFlag
+				jmp saveCheckOutsideTemperatreTimerH
+
+			setCheckOutsideTemperatreFlag:
+				sbr eventsFlags2, ef_check_outside_temperature
+
+				resetCheckOutsideTemperatreTimerH:
+				ldi temp, checkOutsideTemperatureFreq ; reset  timer
+
+			saveCheckOutsideTemperatreTimerH:
+				sts CheckOutsideTemperatureTimerH, temp ;and save it to ram
+		
+		endCheckOutsideTemperatreTimerUpdate:
+
+
+		//////// check accelerations timer //////////
+		ldi xh, high(checkAccelerationTimer)
+		ldi xl, low(checkAccelerationTimer)
+		ld temp, x
+		inc temp
+		cpi temp, 254
+			brsh setCheckAccelerationFlag
+			jmp saveCheckAccelerationTimer
+
+		setCheckAccelerationFlag:
+			sbr eventsFlags2, ef_check_acceleration
+			ldi temp, 0
+
+		saveCheckAccelerationTimer:
+			sts checkAccelerationTimer, temp
+
+		endCheckAccelerationUpdate:
+
 
 	ret
 
@@ -725,9 +901,30 @@
 			jmp endEngineTemperatureCheck
 			
 		enableEngineTempWarning:
-			sbr statesFlags0, sf_warning_signal_enabled
+			call enableWarningSignal
 
 		endEngineTemperatureCheck:
+	ret
+
+	checkOutsideTemperature:
+		cbr eventsFlags2, ef_check_outside_temperature
+
+		ldi xh, high(analogValuesTable) ; get engine temperature from ram
+		ldi xl, low(analogValuesTable)
+		ldi temp4, outsideThermalSensorNum
+		add xl, temp4
+		ld temp, x
+
+		cpi temp, 128 + 70 ; if  temperature is more then 70C than warning
+			brsh enableOutsideTempWarning
+		cpi temp, 128 - 80 ; if temperature lower then -80 than warning
+			brlo enableOutsideTempWarning
+			jmp endOutsideTemperatureCheck
+			
+		enableOutsideTempWarning:
+			call enableWarningSignal
+
+		endOutsideTemperatureCheck:
 	ret
 
 	updateConditioner:
@@ -763,7 +960,7 @@
 		jmp updateHeater
 
 		condTemperatureWarning:
-			sbr statesFlags0, sf_warning_signal_enabled
+			call enableWarningSignal
 
 		updateHeater:
 		cpi temp2, 128 ; if temperature is minus then enable heater emmediately 
@@ -1528,30 +1725,43 @@
 
 	////////////INTERRUPTIONS HANDLERS/////////////
 	extInt0Handler:
+		in tempInter, sreg
 		sbr eventsFlags0, ef_handle_input
+		out sreg, tempInter
 	reti
 
 	extInt1Handler:
+		in tempInter, sreg
 		sbr eventsFlags1, ef_increment_tachometer
+		out sreg, tempInter
 	reti
 
 	timer0OvfHandler:
+		in tempInter, sreg
 		sbr eventsFlags0, ef_update_sound_type
+		out sreg, tempInter
 	reti
 
 	timer1OvfHandler:
+		in tempInter, sreg
 		sbr eventsFlags0, ef_update_7seg_screen
+		out sreg, tempInter
 	reti
 
 	timer2OvfHandler: 
+		in tempInter, sreg
 		sbr eventsFlags0, ef_update_sound_wave_state
+		out sreg, tempInter
 	reti
 
 	timer3OvfHandler:
+		in tempInter, sreg
 		sbr eventsFlags1, ef_update_program_timers
+		out sreg, tempInter
 	reti
 
 	adcConvertionHandler:	
+		in tempInter, sreg
 		sbr eventsFlags0, ef_read_analog_sensors
+		out sreg, tempInter
 	reti
-
