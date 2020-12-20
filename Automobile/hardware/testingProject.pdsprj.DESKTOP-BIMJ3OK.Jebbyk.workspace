@@ -35,7 +35,7 @@
    <POPUP w="290" x="-556" flags="00000000" y="126" h="189" pid="0" iid="8">
     <PROPERTIES/>
    </POPUP>
-   <POPUP w="226" x="1019" flags="00000009" y="536" h="215" pid="3" iid="1">
+   <POPUP w="30" x="1019" flags="00000009" y="536" h="16" pid="3" iid="1">
     <PROPERTIES/>
    </POPUP>
    <POPUP w="8" x="118" flags="0000000a" y="209" h="1" pid="10" iid="1">
@@ -98,11 +98,11 @@
      <ITEM name="TopLineAddress">00000020</ITEM>
     </PROPERTIES>
    </POPUP>
-   <POPUP w="877" x="0" flags="0000802b" y="1" h="899" pid="1" iid="1">
+   <POPUP w="877" x="0" flags="0000002b" y="1" h="899" pid="1" iid="1">
     <PROPERTIES>
      <ITEM name="Breakpoint 0">"",029A,0000,2D6B,5BC9,-1
 </ITEM>
-     <ITEM name="Breakpoint 1">"",02B4,0000,CD0B,5BC9,-1
+     <ITEM name="Breakpoint 1">"",02B4,0000,0651,5BC9,-1
 </ITEM>
      <ITEM name="Breakpoint 10">"",0598,0000,A9BB,5BC9,-1
 </ITEM>
@@ -118,19 +118,19 @@
 </ITEM>
      <ITEM name="Breakpoint 16">"",05B0,0000,5BFE,5BC9,-1
 </ITEM>
-     <ITEM name="Breakpoint 2">"",057E,0000,A7F5,5BC9,-1
+     <ITEM name="Breakpoint 2">"",039E,0000,32BE,5BC9,-1
 </ITEM>
-     <ITEM name="Breakpoint 3">"",059A,0000,BE92,5BC9,-1
+     <ITEM name="Breakpoint 3">"",057E,0000,A7E9,5BC9,-1
 </ITEM>
-     <ITEM name="Breakpoint 4">"",059C,0000,9FCF,5BC9,-1
+     <ITEM name="Breakpoint 4">"",0598,0000,1B85,5BC9,-1
 </ITEM>
-     <ITEM name="Breakpoint 5">"",059C,0000,F671,5BC9,-1
+     <ITEM name="Breakpoint 5">"",059C,0000,5DB1,5BC9,-1
 </ITEM>
-     <ITEM name="Breakpoint 6">"",059E,0000,3172,5BC9,-1
+     <ITEM name="Breakpoint 6">"",059E,0000,5BFE,5BC9,-1
 </ITEM>
-     <ITEM name="Breakpoint 7">"",05AC,0000,2884,5BC9,-1
+     <ITEM name="Breakpoint 7">"",05AC,0000,0651,5BC9,-1
 </ITEM>
-     <ITEM name="Breakpoint 8">"",05C8,0000,2DA7,5BC9,-1
+     <ITEM name="Breakpoint 8">"",05C6,0000,6E1A,5BC9,-1
 </ITEM>
      <ITEM name="Breakpoint 9">"",0566,0000,7BA3,5BC9,-1
 </ITEM>
@@ -161,6 +161,9 @@
     </PROPERTIES>
    </POPUP>
    <POPUP w="511" x="-643" flags="00000000" y="107" h="147" pid="0" iid="41">
+    <PROPERTIES/>
+   </POPUP>
+   <POPUP w="695" x="-783" flags="00000000" y="151" h="453" pid="0" iid="45">
     <PROPERTIES/>
    </POPUP>
   </PWI>

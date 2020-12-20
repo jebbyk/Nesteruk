@@ -72,8 +72,6 @@
 .equ chR = 18
 .equ chSpace = 19
 
-.def currentKey = r24
-
 .equ soundSignalsDelay = 128 + 64 + 32 + 16 ; (lower number bigger delays)
 	.equ tone0 = 0 + 128 + 64 + 32 + 16 + 8 + 4 ; (lower number -lower tone)
  	.equ tone1 = 0 + 128 + 64 + 32 + 16 + 8 + 4 + 2
@@ -135,6 +133,8 @@
 	.equ ef_check_engine_temperature_n = 2
 	.equ ef_switch_display_data =		0b000000010
 	.equ ef_switch_display_data_n =		1
+	.equ ef_handle_current_key =		0b000000001
+	.equ ef_handle_current_key_n =		0
 
 
 //addreses in eeprom where usefull data will be saved
@@ -142,57 +142,55 @@
 
 
 .dseg
-	currentTone:
-		.byte 1 ; there will be stored current note of sound
-
-	curPos7Seg:
-		.byte 1 ; position of currently printing glyph on 7seg display
-	SevenSegScrBuff:
-		.byte 8 ; reserve 8 bytes for 7 segment dysplay buffer
-
-	currentSensorNum:
-		.byte 1 ; there will be stored number of thermalSensor we wanna save data from
-	targetTemperature:
-		.byte 1 ; reserve  1 byte to keep temperature while running\
 	analogValuesTable:
 		.byte 16 ; there will be stored all the data from all 8 thermal sensors
-	updateConditionerTimer:
-		.byte 1
-	flapsUpdateTimer:
-		.byte 1
-	currentControlledFlap:
-		.byte 1
-
-	conditionerFanTimer0:
-		.byte 1 ; reserve 2 bytes to store current conditioner fan timer
-	conditionerFanTimer1:
-		.byte 1
-
-	tachometerTimerH:
-		.byte 1
-	tachometerTimerL:
-		.byte 1
-
-	tachometerCounter:
-		.byte 1
-
-	engineSpeed:
-		.byte 1
-	checkEngineTemperatureTimer:
-		.byte 1
-
-
-	conditionerFanState:
-		.byte 1 ; reserve 1 byte to know fan "rotation" (not quite but who cares)
-
-
+	SevenSegScrBuff:
+		.byte 8 ; reserve 8 bytes for 7 segment dysplay buffer
+	currentSensorNum:
+		.byte 1 ; there will be stored number of thermalSensor we wanna save data from
+	curPos7Seg:
+		.byte 1 ; position of currently printing glyph on 7seg display
+	
 	currentDisplayData:
 		.byte 1 ; 0 - temperatures, 1 - tachometer
 	switchDisplayDataTimerH:
 		.byte 1 ;
 	switchDisplayDataTimerL:
 		.byte 1 ;
-	
+
+	targetTemperature:
+		.byte 1 ; reserve  1 byte to keep temperature while running\
+	updateConditionerTimer:
+		.byte 1
+	flapsUpdateTimer:
+		.byte 1
+	currentControlledFlap:
+		.byte 1
+	conditionerFanTimer0:
+		.byte 1 ; reserve 2 bytes to store current conditioner fan timer
+	conditionerFanTimer1:
+		.byte 1
+	conditionerFanState:
+		.byte 1 ; reserve 1 byte to know fan "rotation" (not quite but who cares)
+
+	tachometerTimerH:
+		.byte 1
+	tachometerTimerL:
+		.byte 1
+	tachometerCounter:
+		.byte 1
+	engineSpeed:
+		.byte 1
+	checkEngineTemperatureTimer:
+		.byte 1
+
+	currentTone:
+		.byte 1 ; there will be stored current note of sound
+
+	currentKey:
+		.byte 1 ; there will be storred a number of the last pressed key
+	handleCurrentKeyTimer:
+		.byte 1
 
 .cseg
 	.org 0
@@ -341,35 +339,42 @@
 			call checkEngineTemperature
 		sbrc eventsFlags1, ef_switch_display_data_n
 			call switchDisplayData
-		
-		
-		cpi currentKey, 28
-			breq kek
-		cpi currentKey, 20
-			breq lol
-		cpi currentKey, 12
-			breq pewpew
-		cpi currentKey, 25
-			breq cheburek
-			jmp backgroundProcess
+		sbrc eventsFlags1, ef_handle_current_key_n
+			call handleCurrentKey
+ 	jmp backgroundProcess
 
-		lol:
-			call lowerTemperature
-			jmp backgroundProcess
+	handleCurrentKey:
+		cbr eventsFlags1, ef_handle_current_key
+		ldi xh, high(currentKey)
+		ldi xl, low(currentKey)
+		ld temp, x
+		cpi temp, 28
+			breq callRizeTemperature
+		cpi temp, 20
+			breq callLowerTemperature
+		cpi temp, 12
+			breq callHandleCancelKey
+		cpi temp, 25
+			breq callSwitchConditioner
+			jmp handleCurrentKeyEnd
 
-		kek:
+		callRizeTemperature:
 			call rizeTemperature
-			jmp backgroundProcess
+			jmp handleCurrentKeyEnd
 
-		pewpew:
+		callLowerTemperature:
+			call lowerTemperature
+			jmp handleCurrentKeyEnd
+
+		callHandleCancelKey:
 			call handleCancelKey
-			jmp backgroundProcess
+			jmp handleCurrentKeyEnd
 
-		cheburek:
+		callSwitchConditioner:
 			call switchConditioner
 
-
- 	jmp backgroundProcess
+		handleCurrentKeyEnd:
+	ret
 
 
 	handleCancelKey:
@@ -378,7 +383,8 @@
 			jmp endHandleCancelKey
 
 		cancelWarning:
-			ldi currentKey, 0 ; current key is handled. so clear it
+			ldi temp, 0
+			sts currentKey, temp ; current key is handled. so clear it
 			call disableWarningSignal
 			call enableCancelSignal
 
@@ -584,6 +590,23 @@
 		endCheckEngineTemperatureTimerUpdate:
 
 
+		ldi xh, high(handleCurrentKeyTimer)
+		ldi xl, low(handleCurrentKeyTimer)
+		ld temp, x
+		inc temp
+		cpi temp, 254
+			brsh setHandleCurrentKeyFlag
+			jmp saveHandleCurrentKeyTimer
+
+		setHandleCurrentKeyFlag:
+			sbr eventsFlags1, ef_handle_current_key
+			ldi temp, 0
+
+		saveHandleCurrentKeyTimer:
+			sts handleCurrentKeyTimer, temp
+
+		endHandleCrrentKeyTimerUpdate:
+
 	ret
 
 
@@ -592,8 +615,8 @@
 			ret
 		
 		call enableClickSignal ; make click sound
-
-		ldi currentKey, 0
+		ldi temp, 0
+		sts currentKey, temp
 		ldi xh, high(targetTemperature) ; get temperature from ram
 		ldi xl, low(targetTemperature)
 		ld temp, x
@@ -615,7 +638,8 @@
 		
 		call enableClickSignal ; make click sound
 
-		ldi currentKey, 0
+		ldi temp, 0
+		sts currentKey, temp
 		ldi xh, high(targetTemperature) ; get temperature from ram
 		ldi xl, low(targetTemperature)
 		ld temp, x
@@ -631,7 +655,8 @@
 	ret
 
 	switchConditioner:
-		ldi currentKey, 0
+		ldi temp, 0
+		sts currentKey, temp
 		sbrs statesFlags0, sf_conditioner_enabled_n
 			jmp cond_en
 			jmp cond_dis
@@ -1080,7 +1105,7 @@
 			pop temp2 ; removing returning addr from stack
 			pop temp2
 		endReadingInput:
-			mov currentKey, temp ; finally save pressed key
+			sts currentKey, temp ; finally save pressed key
 			ldi temp, 0b10000000 ; enable continuous keyboard checking
 			out porta, temp 
 			
@@ -1143,7 +1168,7 @@
 		inc temp3
 
 		cpi temp3, 8
-		breq jumpToFirst7seg
+			brsh jumpToFirst7seg
 			jmp printGlyph
 
 		jumpToFirst7seg:
@@ -1155,7 +1180,7 @@
 			sbrc statesFlags0, sf_display_error_message_n
 				jmp selectErrorMessage
 			cpi temp, 0
-				breq selectTemperaturesData ; TODO prevent failing copairing after SBR command in interruption handler
+				breq selectTemperaturesData ; TODO prevent failing compairing after SBR command in interruption handler
 			cpi temp, 1
 				breq selectTachometerData
 
@@ -1233,11 +1258,15 @@
 		call convertBinToDec
 		mov temp2, temp
 		andi temp2, 0b00001111 ; select low page
-		sts SevenSegScrBuff + 1 , temp2 ; place the actual glyph number in a buffer
+		sts SevenSegScrBuff + 2 , temp2 ; place the actual glyph number in a buffer
 
 		andi temp, 0b11110000 ; select high page
 		swap temp
-		sts SevenSegScrBuff, temp ; place the actual glyph nubmer in a buffer
+		sts SevenSegScrBuff + 1, temp ; place the actual glyph nubmer in a buffer
+
+		ldi temp, ch0
+		sts SevenSegScrBuff + 3, temp
+		sts SevenSegScrBuff + 4, temp
 	ret
 
 	
