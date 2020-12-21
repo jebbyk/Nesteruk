@@ -7,7 +7,7 @@
 .def tempInter = r20
 .def eventsFlags0 = r21
 .def eventsFlags1 = r22
-.def eventsFlags2 = r23
+.def tempFlag = r23
 .def statesFlags0 = r24
 
 .equ speaker_pin_number = 5
@@ -217,6 +217,9 @@
 	checkAccelerationTimer:
 		.byte 1 
 
+	eventsFlags2:
+		.byte 1
+
 .cseg
 	.org 0
 		jmp reset
@@ -367,15 +370,19 @@
 		sbrc eventsFlags1, ef_handle_current_key_n
 			call handleCurrentKey
 
-		sbrc eventsFlags2, ef_check_outside_temperature_n
+		ldi xh, high(eventsFlags2)
+		ldi xl, low(eventsFlags2) 
+		ld tempFlag, x
+		sbrc tempFlag, ef_check_outside_temperature_n
 			call checkOutsideTemperature
-		sbrc eventsFlags2, ef_check_acceleration_n
+		sbrc tempFlag, ef_check_acceleration_n
 			call checkAcceleration
 
  	jmp backgroundProcess
 
 	checkAcceleration:
-		cbr eventsFlags2, ef_check_acceleration
+		cbr tempFlag, ef_check_acceleration
+		sts eventsFlags2, tempFlag
 
 		ldi xh, high(analogValuesTable)
 		ldi xl, low(analogValuesTable)
@@ -511,6 +518,8 @@
 	ret
 
 	enableWarningSignal:
+		sbrc statesFlags0, sf_warning_signal_enabled_n
+			ret ; return emmediately if it is already enabled
 		call resetSoundState
 		sbr statesFlags0, sf_warning_signal_enabled
 	ret
@@ -731,6 +740,9 @@
 
 
 		////////// outside temp checking timer//////////
+		ldi xh, high(eventsFlags2)
+		ldi xl, low(eventsFlags2)
+		ld tempFlag, x
 		ldi xh, high(checkOutsideTemperatureTimerL) ; get timer from ram
 		ldi xl, low(checkOutsideTemperatureTimerL)
 		ld temp, x
@@ -753,7 +765,8 @@
 				jmp saveCheckOutsideTemperatreTimerH
 
 			setCheckOutsideTemperatreFlag:
-				sbr eventsFlags2, ef_check_outside_temperature
+				sbr tempFlag, ef_check_outside_temperature
+				sts eventsFlags2, tempFlag
 
 				resetCheckOutsideTemperatreTimerH:
 				ldi temp, checkOutsideTemperatureFreq ; reset  timer
@@ -774,7 +787,8 @@
 			jmp saveCheckAccelerationTimer
 
 		setCheckAccelerationFlag:
-			sbr eventsFlags2, ef_check_acceleration
+			sbr tempFlag, ef_check_acceleration
+			sts eventsFlags2, tempFlag
 			ldi temp, 0
 
 		saveCheckAccelerationTimer:
@@ -898,6 +912,8 @@
 
 		cpi temp, 128 + 120 ; if engine temperature is more than 120C
 			brsh enableEngineTempWarning
+		cpi temp, 128 - 80 ; if enginge temperature is strangely low then warning too
+			brlo enableEngineTempWarning
 			jmp endEngineTemperatureCheck
 			
 		enableEngineTempWarning:
@@ -907,7 +923,8 @@
 	ret
 
 	checkOutsideTemperature:
-		cbr eventsFlags2, ef_check_outside_temperature
+		cbr tempFlag, ef_check_outside_temperature
+		sts eventsFlags2, tempFlag
 
 		ldi xh, high(analogValuesTable) ; get engine temperature from ram
 		ldi xl, low(analogValuesTable)

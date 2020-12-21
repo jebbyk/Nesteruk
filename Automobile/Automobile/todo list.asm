@@ -1,5 +1,3 @@
-;todo controll temperature of engine and conditioner and signal warning if it is needed
-
 ;todo hummidity controll in conditioner
 
 ;run all program timers from one ore two hardware timers
@@ -10,13 +8,7 @@
 
 ;todo dust sensor for conditioner
 
-;gyroscope
-	
-	;airbags
-	
-	;acceleartion vector check
-	
-	;vehicle stabiliry control
+;vehicle stabiliry control
 
 ;TODO addn seats heating system
 	
