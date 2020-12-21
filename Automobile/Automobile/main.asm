@@ -5,8 +5,8 @@
 .def temp3 = r18
 .def temp4 = r19
 .def tempInter = r20
+.def tempInter2 = r22
 .def eventsFlags0 = r21
-.def eventsFlags1 = r22
 .def tempFlag = r23
 .def tempFlag2 = r24
 
@@ -217,6 +217,8 @@
 	checkAccelerationTimer:
 		.byte 1 
 
+	eventsFlags1:
+		.byte 1
 	eventsFlags2:
 		.byte 1
 	statesFlags0:
@@ -331,8 +333,12 @@
 		ldi temp, 0b11011111 ; en adc, start conv, , clear int flag, enable interuptions, setup prescaler
 		out adcsra, temp
 
-	
-		sbr eventsFlags1, ef_load_target_temp ; try to load target temp on start
+		
+		ldi zh, high(eventsFlags1)
+		ldi zl, low(eventsFlags1)
+		ld tempFlag2, z
+		sbr tempFlag2, ef_load_target_temp ; try to load target temp on start
+		sts eventsFlags1, tempFlag2
 
 		sei ;  allow interrupts
 
@@ -355,21 +361,24 @@
 		sbrc eventsFlags0, ef_update_conditioner_fan_n
 			call updateConditionerFan
 
-		sbrc eventsFlags1, ef_load_target_temp_n
+		ldi xh, high(eventsFlags1)
+		ldi xl, low(eventsFlags1)
+		ld tempFlag, x
+		sbrc tempFlag, ef_load_target_temp_n
 			call loadTargetTemperature
-		sbrc eventsFlags1, ef_update_program_timers_n
+		sbrc tempFlag, ef_update_program_timers_n
 			call updateProgramTimers 
-		sbrc eventsFlags1, ef_update_flaps_n
+		sbrc tempFlag, ef_update_flaps_n
 			call updateFlaps
-		sbrc eventsFlags1, ef_update_tachometer_n
+		sbrc tempFlag, ef_update_tachometer_n
 			call updateTachometer
-		sbrc eventsFlags1, ef_increment_tachometer_n
+		sbrc tempFlag, ef_increment_tachometer_n
 			call incrementTachometerCounter
-		sbrc eventsFlags1, ef_check_engine_temperature_n
+		sbrc tempFlag, ef_check_engine_temperature_n
 			call checkEngineTemperature
-		sbrc eventsFlags1, ef_switch_display_data_n
+		sbrc tempFlag, ef_switch_display_data_n
 			call switchDisplayData
-		sbrc eventsFlags1, ef_handle_current_key_n
+		sbrc tempFlag, ef_handle_current_key_n
 			call handleCurrentKey
 
 		ldi xh, high(eventsFlags2)
@@ -463,7 +472,12 @@
 	ret
 
 	handleCurrentKey:
-		cbr eventsFlags1, ef_handle_current_key
+		ldi zh, high(eventsFlags1)
+		ldi zl, low(eventsFlags1)
+		ld tempFlag2, z
+		cbr tempFlag2, ef_handle_current_key
+		sts eventsFlags1, tempFlag2
+
 		ldi xh, high(currentKey)
 		ldi xl, low(currentKey)
 		ld temp, x
@@ -574,7 +588,11 @@
 		sts tcnt3h, temp
 		sts tcnt3l, temp2
 
-		cbr eventsFlags1, ef_update_program_timers
+		ldi zh, high(eventsFlags1)
+		ldi zl, low(eventsFlags1)
+		ld tempFlag2, z
+		cbr tempFlag2, ef_update_program_timers
+		sts eventsFlags1, tempFlag2
 
 		ldi zh, high(statesFlags0)
 		ldi zl, low(statesFlags0)
@@ -645,13 +663,16 @@
 			jmp saveUpdateFlapsTimer
 
 		setUpdateFlapsFlag:
-			sbr eventsFlags1, ef_update_flaps ; create "update_flaps" task
+			ldi zh, high(eventsFlags1)
+			ldi zl, low(eventsFlags1)
+			ld tempFlag2, z
+			sbr tempFlag2, ef_update_flaps ; create "update_flaps" task
+			sts eventsFlags1, tempFlag2
 
 			ldi temp, 0 ; reset flaps update timer
 
 		saveUpdateFlapsTimer:
 			sts flapsUpdateTimer, temp ;and save it to ram
-
 
 		
 		updTachTimer:
@@ -689,7 +710,11 @@
 			ldi temp, 0
 			sts tachometerTimerL, temp
 			
-			sbr eventsFlags1, ef_update_tachometer
+			ldi zh, high(eventsFlags1)
+			ldi zl, low(eventsFlags1)
+			ld tempFlag2, z
+			sbr tempFlag2, ef_update_tachometer
+			sts eventsFlags1, tempFlag2
 		
 		endTachTimerUpdate:
 
@@ -717,7 +742,11 @@
 				jmp saveSwitchDisplayDataTimerH
 
 			setSwitchDisplayDataFlag:
-				sbr eventsFlags1, ef_switch_display_data
+				ldi zh, high(eventsFlags1)
+				ldi zl, low(eventsFlags1)
+				ld tempFlag2, z
+				sbr tempFlag2, ef_switch_display_data
+				sts eventsFlags1, tempFlag2
 
 				resetDisplayDataTimerH:
 				ldi temp, displayDataSwitchingFreq ; reset  timer
@@ -739,7 +768,11 @@
 			jmp saveCheckEngineTemperatureTimer
 
 		setCheckEngineTemperatureFlag:
-			sbr eventsFlags1, ef_check_engine_temperature ; create "update_flaps" task
+			ldi zh, high(eventsFlags1)
+			ldi zl, low(eventsFlags1)
+			ld tempFlag2, z
+			sbr tempFlag2, ef_check_engine_temperature ; create "update_flaps" task
+			sts eventsFlags1, tempFlag2
 
 			ldi temp, 0 ; reset flaps update timer
 
@@ -758,7 +791,12 @@
 			jmp saveHandleCurrentKeyTimer
 
 		setHandleCurrentKeyFlag:
-			sbr eventsFlags1, ef_handle_current_key
+			ldi zh, high(eventsFlags1)
+			ldi zl, low(eventsFlags1)
+			ld tempFlag2, z
+			sbr tempFlag2, ef_handle_current_key
+			sts eventsFlags1, tempFlag2
+
 			ldi temp, 0
 
 		saveHandleCurrentKeyTimer:
@@ -936,13 +974,22 @@
 		in temp, eedr ; read data from data register
 		sts targetTemperature, temp
 
-		cbr eventsFlags1, ef_load_target_temp ; end loading task if it success
+		ldi zh, high(eventsFlags1)
+		ldi zl, low(eventsFlags1)
+		ld tempFlag2, z
+		cbr tempFlag2, ef_load_target_temp ; end loading task if it success
+		sts eventsFlags1, tempFlag2
 		
 		endReadAttempt:
 	ret
 
 	checkEngineTemperature:
-		cbr eventsFlags1, ef_check_engine_temperature
+		ldi zh, high(eventsFlags1)
+		ldi zl, low(eventsFlags1)
+		ld tempFlag2, z
+		cbr tempFlag2, ef_check_engine_temperature
+		sts eventsFlags1, tempFlag2
+
 		ldi xh, high(analogValuesTable) ; get engine temperature from ram
 		ldi xl, low(analogValuesTable)
 		ldi temp4, engineThermalSensorNum
@@ -1151,7 +1198,12 @@
 		ld tempFlag2, z
 		sbrs tempFlag2, sf_conditioner_enabled_n ; if conditioner is not enabled then return emmidiately
 			ret
-		cbr eventsFlags1, ef_update_flaps
+		
+		ldi zh, high(eventsFlags1)
+		ldi zl, low(eventsFlags1)
+		ld tempFlag2, z
+		cbr tempFlag2, ef_update_flaps
+		sts eventsFlags1, tempFlag2
 
 		ldi zh, high(currentControlledFlap) ; get the number of a flap we wanna update now
 		ldi zl, low(currentControlledFlap)
@@ -1392,7 +1444,11 @@
 	ret
 
 	switchDisplayData:
-		cbr eventsFlags1, ef_switch_display_data
+		ldi zh, high(eventsFlags1)
+		ldi zl, low(eventsFlags1)
+		ld tempFlag2, z
+		cbr tempFlag2, ef_switch_display_data
+		sts eventsFlags1, tempFlag2
 
 		ldi zh, high(statesFlags0)
 		ldi zl, low(statesFlags0)
@@ -1763,7 +1819,11 @@
 	ret
 
 	updateTachometer:
-		cbr eventsFlags1, ef_update_tachometer
+		ldi zh, high(eventsFlags1)
+		ldi zl, low(eventsFlags1)
+		ld tempFlag2, z
+		cbr tempFlag2, ef_update_tachometer
+		sts eventsFlags1, tempFlag2
 		
 		ldi xh, high(tachometerCounter) ; get value counted by tachometer counter durring 0.1 sec
 		ldi xl, low(tachometerCounter)
@@ -1789,7 +1849,11 @@
 	ret
 
 	incrementTachometerCounter:
-		cbr eventsFlags1, ef_increment_tachometer
+		ldi zh, high(eventsFlags1)
+		ldi zl, low(eventsFlags1)
+		ld tempFlag2, z
+		cbr tempFlag2, ef_increment_tachometer
+		sts eventsFlags1, tempFlag2
 
 		in temp, eimsk ; disable external intrruption int1
 		andi temp, 0b11111101
@@ -1824,7 +1888,11 @@
 
 	extInt1Handler:
 		in tempInter, sreg
-		sbr eventsFlags1, ef_increment_tachometer
+		ldi yh, high(eventsFlags1)
+		ldi yl, low(eventsFlags1)
+		ld tempInter2, y
+		sbr tempInter2, ef_increment_tachometer
+		sts eventsFlags1, tempInter2
 		out sreg, tempInter
 	reti
 
@@ -1848,7 +1916,11 @@
 
 	timer3OvfHandler:
 		in tempInter, sreg
-		sbr eventsFlags1, ef_update_program_timers
+		ldi yh, high(eventsFlags1)
+		ldi yl, low(eventsFlags1)
+		ld tempInter2, y
+		sbr tempInter2, ef_update_program_timers
+		sts eventsFlags1, tempInter2
 		out sreg, tempInter
 	reti
 
