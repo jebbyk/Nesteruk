@@ -8,7 +8,7 @@
 .def eventsFlags0 = r21
 .def eventsFlags1 = r22
 .def tempFlag = r23
-.def statesFlags0 = r24
+.def tempFlag2 = r24
 
 .equ speaker_pin_number = 5
 .equ speaker_pin_position = 0b00000100 ; speaker will be connected on 5th pin of portD
@@ -218,6 +218,8 @@
 		.byte 1 
 
 	eventsFlags2:
+		.byte 1
+	statesFlags0:
 		.byte 1
 
 .cseg
@@ -495,7 +497,10 @@
 
 
 	handleCancelKey:
-		sbrc statesFlags0, sf_warning_signal_enabled_n
+		ldi zh, high(statesFlags0)
+		ldi zl, low(statesFlags0)
+		ld tempFlag2, z
+		sbrc tempFlag2, sf_warning_signal_enabled_n
 			jmp cancelWarning
 			jmp endHandleCancelKey
 
@@ -510,37 +515,57 @@
 	ret
 
 	resetSoundState:
-		cbr statesFlags0, sf_click_signal_enabled
-		cbr statesFlags0, sf_accept_signal_enabled
-		cbr statesFlags0, sf_cancel_signal_enabled
-		cbr statesFlags0, sf_warning_signal_enabled
-		cbr statesFlags0, sf_sound_enabled
+		cbr tempFlag2, sf_click_signal_enabled
+		cbr tempFlag2, sf_accept_signal_enabled
+		cbr tempFlag2, sf_cancel_signal_enabled
+		cbr tempFlag2, sf_warning_signal_enabled
+		cbr tempFlag2, sf_sound_enabled
 	ret
 
 	enableWarningSignal:
-		sbrc statesFlags0, sf_warning_signal_enabled_n
+		ldi zh, high(statesFlags0)
+		ldi zl, low(statesFlags0)
+		ld tempFlag2, z
+		sbrc tempFlag2, sf_warning_signal_enabled_n
 			ret ; return emmediately if it is already enabled
 		call resetSoundState
-		sbr statesFlags0, sf_warning_signal_enabled
+		sbr tempFlag2, sf_warning_signal_enabled
+		sts statesFlags0, tempFlag2
 	ret
 
 	disableWarningSignal:
-		cbr statesFlags0, sf_warning_signal_enabled
+		ldi zh, high(statesFlags0)
+		ldi zl, low(statesFlags0)
+		ld tempFlag2, z
+		cbr tempFlag2, sf_warning_signal_enabled
+		sts statesFlags0, tempFlag2
 	ret
 
 	enableClickSignal:
+		ldi zh, high(statesFlags0)
+		ldi zl, low(statesFlags0)
+		ld tempFlag2, z
 		call resetSoundState
-		sbr statesFlags0, sf_click_signal_enabled
+		sbr tempFlag2, sf_click_signal_enabled
+		sts statesFlags0, tempFlag2
 	ret
 
 	enableAcceptSignal:
+		ldi zh, high(statesFlags0)
+		ldi zl, low(statesFlags0)
+		ld tempFlag2, z
 		call resetSoundState
-		sbr statesFlags0, sf_accept_signal_enabled
+		sbr tempFlag2, sf_accept_signal_enabled
+		sts statesFlags0, tempFlag2
 	ret
 
 	enableCancelSignal:
+		ldi zh, high(statesFlags0)
+		ldi zl, low(statesFlags0)
+		ld tempFlag2, z
 		call resetSoundState
-		sbr statesFlags0, sf_cancel_signal_enabled
+		sbr tempFlag2, sf_cancel_signal_enabled
+		sts statesFlags0, tempFlag2
 	ret
 
 	updateProgramTimers:
@@ -551,7 +576,10 @@
 
 		cbr eventsFlags1, ef_update_program_timers
 
-		sbrs statesFlags0, sf_conditioner_enabled_n ; if conditioner is not enabled then return emmidiately
+		ldi zh, high(statesFlags0)
+		ldi zl, low(statesFlags0)
+		ld tempFlag2, z
+		sbrs tempFlag2, sf_conditioner_enabled_n ; if conditioner is not enabled then return emmidiately
 			jmp updTachTimer
 		
 		ldi xh, high(updateConditionerTimer) ; get timer from ram
@@ -801,7 +829,10 @@
 
 
 	rizeTemperature:
-		sbrs statesFlags0, sf_conditioner_enabled_n ; if conditioner is not enabled then return emmidiately
+		ldi zh, high(statesFlags0)
+		ldi zl, low(statesFlags0)
+		ld tempFlag2, z
+		sbrs tempFlag2, sf_conditioner_enabled_n ; if conditioner is not enabled then return emmidiately
 			ret
 		
 		call enableClickSignal ; make click sound
@@ -823,7 +854,10 @@
 	ret
 
 	lowerTemperature:
-		sbrs statesFlags0, sf_conditioner_enabled_n ; if conditioner is not enabled then return emmidiately
+		ldi zh, high(statesFlags0)
+		ldi zl, low(statesFlags0)
+		ld tempFlag2, z
+		sbrs tempFlag2, sf_conditioner_enabled_n ; if conditioner is not enabled then return emmidiately
 			ret
 		
 		call enableClickSignal ; make click sound
@@ -847,16 +881,21 @@
 	switchConditioner:
 		ldi temp, 0
 		sts currentKey, temp
-		sbrs statesFlags0, sf_conditioner_enabled_n
+		ldi zh, high(statesFlags0)
+		ldi zl, low(statesFlags0)
+		ld tempFlag2, z
+		sbrs tempFlag2, sf_conditioner_enabled_n
 			jmp cond_en
 			jmp cond_dis
 
 		cond_en:
-			sbr statesFlags0, sf_conditioner_enabled
+			sbr tempFlag2, sf_conditioner_enabled
+			sts statesFlags0, tempFlag2
 			call enableAcceptSignal
 			jmp endSwitchConditioner
 		cond_dis:
-			cbr statesFlags0, sf_conditioner_enabled
+			cbr tempFlag2, sf_conditioner_enabled
+			sts statesFlags0, tempFlag2
 			call enableCancelSignal
 			cbi porte, heater_pin_number
 			cbi porte, cooler_pin_number
@@ -945,7 +984,10 @@
 	ret
 
 	updateConditioner:
-		sbrs statesFlags0, sf_conditioner_enabled_n ; if conditioner is not enabled then return emmidiately
+		ldi zh, high(statesFlags0)
+		ldi zl, low(statesFlags0)
+		ld tempFlag2, z
+		sbrs tempFlag2, sf_conditioner_enabled_n ; if conditioner is not enabled then return emmidiately
 			ret
 		cbr eventsFlags0, ef_update_heater
 
@@ -1076,7 +1118,10 @@
 	ret
 
 	updateConditionerFan:
-		sbrs statesFlags0, sf_conditioner_enabled_n ; if conditioner is not enabled then return emmidiately
+		ldi zh, high(statesFlags0)
+		ldi zl, low(statesFlags0)
+		ld tempFlag2, z
+		sbrs tempFlag2, sf_conditioner_enabled_n ; if conditioner is not enabled then return emmidiately
 			ret
 		cbr eventsFlags0, ef_update_conditioner_fan
 
@@ -1101,7 +1146,10 @@
 	ret
 
 	updateFlaps:
-		sbrs statesFlags0, sf_conditioner_enabled_n ; if conditioner is not enabled then return emmidiately
+		ldi zh, high(statesFlags0)
+		ldi zl, low(statesFlags0)
+		ld tempFlag2, z
+		sbrs tempFlag2, sf_conditioner_enabled_n ; if conditioner is not enabled then return emmidiately
 			ret
 		cbr eventsFlags1, ef_update_flaps
 
@@ -1154,55 +1202,63 @@
 		ldi temp, soundSignalsDelay ; reset timer immediately
 		out tcnt0, temp
 		
-		sbrc statesFlags0, sf_warning_signal_enabled_n
+		ldi zh, high(statesFlags0)
+		ldi zl, low(statesFlags0)
+		ld tempFlag2, z
+		sbrc tempFlag2, sf_warning_signal_enabled_n
 			jmp updateWarningSignal ; if warning signal is enabled then update it
-		sbrc statesFlags0, sf_click_signal_enabled_n
+		sbrc tempFlag2, sf_click_signal_enabled_n
 			jmp updateClickSignal
-		sbrc statesFlags0, sf_accept_signal_enabled_n
+		sbrc tempFlag2, sf_accept_signal_enabled_n
 			jmp updateAcceptSignal
-		sbrc statesFlags0, sf_cancel_signal_enabled_n
+		sbrc tempFlag2, sf_cancel_signal_enabled_n
 			jmp updateCancelSignal
 		ret	
 
 		updateWarningSignal:	
-			sbrs statesFlags0, sf_sound_enabled_n
+			sbrs tempFlag2, sf_sound_enabled_n
 				jmp warningSound_case_0
 				jmp warningSound_case_1
 				warningSound_case_0:
 					ldi temp, tone0
 					sts currentTone, temp ; set sound tone
-					sbr statesFlags0, sf_sound_enabled ; enable sound
+					sbr tempFlag2, sf_sound_enabled ; enable sound
+					sts statesFlags0, tempFlag2
 				ret
 
 				warningSound_case_1:
-					cbr statesFlags0, sf_sound_enabled ; disable sound
+					cbr tempFlag2, sf_sound_enabled ; disable sound
+					sts statesFlags0, tempFlag2
 				ret
 
 		updateClickSignal:
-			sbrs statesFlags0, sf_sound_enabled_n
+			sbrs tempFlag2, sf_sound_enabled_n
 				jmp clickSound_case_0 ; if we haven't clicked yet than click
 				jmp clickSound_case_1 ; otherwise end lcick signal
 
 				clickSound_case_0:
 					ldi temp, tone0
 					sts currentTone, temp ; set low sound tone  
-					sbr statesFlags0, sf_sound_enabled ; enable sound
+					sbr tempFlag2, sf_sound_enabled ; enable sound
+					sts statesFlags0, tempFlag2
 				ret
 
 				clickSound_case_1:
-					cbr statesFlags0, sf_click_signal_enabled ; end click sound
-					cbr statesFlags0, sf_sound_enabled ; disable sound
+					cbr tempFlag2, sf_click_signal_enabled ; end click sound
+					cbr tempFlag2, sf_sound_enabled ; disable sound
+					sts statesFlags0, tempFlag2
 				ret
 
 		updateAcceptSignal:
-			sbrs statesFlags0, sf_sound_enabled_n
+			sbrs tempFlag2, sf_sound_enabled_n
 				jmp acceptSound_case0 ; if sound is not enabled yet than enable it and set tone low
 				jmp acceptSound_case1 ; otherwise if tone low then make it high. if tone high than end accept signal
 
 				acceptSound_case0:	
 					ldi temp, tone0		
 					sts currentTone, temp ; set low sound tone  
-					sbr statesFlags0, sf_sound_enabled ; enable sound
+					sbr tempFlag2, sf_sound_enabled ; enable sound
+					sts statesFlags0, tempFlag2
 				ret
 
 				acceptSound_case1:
@@ -1218,19 +1274,21 @@
 							sts currentTone, temp ; set high sound tone  
 						ret
 						acceptSound_case3:
-							cbr statesFlags0, sf_sound_enabled	; disable sound
-							cbr statesFlags0, sf_accept_signal_enabled ; end accept signal
+							cbr tempFlag2, sf_sound_enabled	; disable sound
+							cbr tempFlag2, sf_accept_signal_enabled ; end accept signal
+							sts statesFlags0, tempFlag2
 						ret
 
 		updateCancelSignal:
-			sbrs statesFlags0, sf_sound_enabled_n
+			sbrs tempFlag2, sf_sound_enabled_n
 				jmp cancelSound_case0 ; if sound is not enabled yet than enable it and set tone low
 				jmp cancelSound_case1 ; otherwise if tone low then make it high. if tone high than end accept signal
 
 				cancelSound_case0:
 					ldi temp, tone1			
 					sts currentTone, temp ; set high sound tone  
-					sbr statesFlags0, sf_sound_enabled ; enable sound
+					sbr tempFlag2, sf_sound_enabled ; enable sound
+					sts statesFlags0, tempFlag2
 				ret
 
 				cancelSound_case1:
@@ -1246,8 +1304,9 @@
 							sts currentTone, temp ; set sound tone  
 						ret
 						cancelSound_case3:
-							cbr statesFlags0, sf_sound_enabled	; disable sound
-							cbr statesFlags0, sf_cancel_signal_enabled ; end accept signal
+							cbr tempFlag2, sf_sound_enabled	; disable sound
+							cbr tempFlag2, sf_cancel_signal_enabled ; end accept signal
+							sts statesFlags0, tempFlag2
 						ret
 
 
@@ -1261,7 +1320,10 @@
 
 		out tcnt2, temp ; reset timer2 immediately to prevent bad sound
 
-		sbrs statesFlags0, sf_sound_enabled_n ; if we should not prodice some sound
+		ldi zh, high(statesFlags0)
+		ldi zl, low(statesFlags0)
+		ld tempFlag2, z
+		sbrs tempFlag2, sf_sound_enabled_n ; if we should not prodice some sound
 			reti ; do nothing
 			sbis portd, speaker_pin_number ; if this pin is low
 				jmp speakerWaveUp ; then make it high
@@ -1332,22 +1394,28 @@
 	switchDisplayData:
 		cbr eventsFlags1, ef_switch_display_data
 
-		sbrc statesFlags0, sf_warning_signal_enabled_n
+		ldi zh, high(statesFlags0)
+		ldi zl, low(statesFlags0)
+		ld tempFlag2, z
+		sbrc tempFlag2, sf_warning_signal_enabled_n
 			jmp checkDisplayErrorMessage
-			cbr statesFlags0, sf_display_error_message
+			cbr tempFlag2, sf_display_error_message
+			sts statesFlags0, tempFlag2
 			jmp normalDataSwitch
 
 		checkDisplayErrorMessage:
-			sbrs statesFlags0, sf_display_error_message_n
+			sbrs tempFlag2, sf_display_error_message_n
 				jmp switchThroughError
 				jmp normalDataSwitch			
 
 		switchThroughError:
-			sbr statesFlags0, sf_display_error_message
+			sbr tempFlag2, sf_display_error_message
+			sts statesFlags0, tempFlag2
 			jmp endSwitchingDisplayData
 
 		normalDataSwitch:
-			cbr statesFlags0, sf_display_error_message
+			cbr tempFlag2, sf_display_error_message
+			sts statesFlags0, tempFlag2
 		ldi xh, high(currentDisplayData) ; get "number" of type of data we wanna to be displayed
 				ldi xl, low(currentDisplayData)
 				ld temp, x
@@ -1391,7 +1459,11 @@
 			ldi xh, high(currentDisplayData)
 			ldi xl, low(currentDisplayData)
 			ld temp, x
-			sbrc statesFlags0, sf_display_error_message_n
+				
+			ldi zh, high(statesFlags0)
+			ldi zl, low(statesFlags0)
+			ld tempFlag2, z
+			sbrc tempFlag2, sf_display_error_message_n
 				jmp selectErrorMessage
 			cpi temp, 0
 				breq selectTemperaturesData ; TODO prevent failing compairing after SBR command in interruption handler
@@ -1485,7 +1557,10 @@
 
 	
 	printTargetTemperature:
-		sbrs statesFlags0, sf_conditioner_enabled_n ; if conditioner is not enabled then return emmidiately
+		ldi zh, high(statesFlags0)
+		ldi zl, low(statesFlags0)
+		ld tempFlag2, z
+		sbrs tempFlag2, sf_conditioner_enabled_n ; if conditioner is not enabled then return emmidiately
 			ret
 		ldi xh, high(targetTemperature) ; get temperature from ram
 		ldi xl, low(targetTemperature)
